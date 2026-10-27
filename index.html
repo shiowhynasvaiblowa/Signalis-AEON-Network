@@ -1,0 +1,3718 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AEON — CENTRAL INFORMATION NETWORK // TERMINAL EUS-04</title>
+  <style>
+    :root {
+      --bg-core: #0a0a0c;
+      --bg-panel: #111115;
+      --bg-panel-alt: #16161b;
+      --bg-paper: #1d1b18;
+      --text-main: #e6dec8;
+      --text-muted: #948e7e;
+      --text-dim: #5e5a50;
+      --accent-red: #c92a2a;
+      --accent-red-bright: #ff3b30;
+      --accent-red-dark: #4a1010;
+      --accent-amber: #d99b26;
+      --accent-cyan: #528b8b;
+      --accent-green: #4d8f5d;
+      --border-main: #2e2c27;
+      --border-red: #8a2020;
+      --font-mono: 'Courier New', Courier, 'Lucida Console', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-core);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      line-height: 1.5;
+      font-size: 14px;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      selection-background-color: var(--accent-red);
+      selection-color: #fff;
+    }
+
+    ::selection {
+      background: var(--accent-red);
+      color: #fff;
+    }
+
+    /* CRT & GLITCH OVERLAYS */
+    .crt-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 900;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.32) 50%),
+        radial-gradient(circle at center, transparent 60%, rgba(0, 0, 0, 0.65) 100%);
+      background-size: 100% 4px, 100% 100%;
+      opacity: 1;
+      transition: opacity 0.25s ease;
+    }
+
+    body.crt-disabled .crt-overlay {
+      opacity: 0;
+    }
+
+    body.crt-disabled .crt-overlay::before,
+    body.crt-disabled .crt-overlay::after {
+      animation-play-state: paused;
+    }
+
+    body:not(.crt-disabled) .flicker-target {
+      animation: subtleFlicker 9s infinite;
+    }
+
+    @keyframes subtleFlicker {
+      0%, 96%, 100% { opacity: 1; }
+      97% { opacity: 0.92; }
+      98% { opacity: 0.98; }
+      99% { opacity: 0.94; }
+    }
+
+    /* BOOT SEQUENCE SCREEN */
+    #boot-screen {
+      position: fixed;
+      inset: 0;
+      background-color: #070709;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 28px;
+      border: 4px solid var(--accent-red);
+    }
+
+    #boot-screen {
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    #boot-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .boot-log-box {
+      max-width: 820px;
+      font-size: 13px;
+      color: var(--text-main);
+      white-space: pre-wrap;
+    }
+
+    .boot-line {
+      margin-bottom: 5px;
+      opacity: 0;
+      animation: fadeInLine 0.12s forwards;
+    }
+
+    @keyframes fadeInLine {
+      to { opacity: 1; }
+    }
+
+    .boot-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border-main);
+      padding-top: 14px;
+    }
+
+    /* TOP WARNING BAR & SPOILER BANNER */
+    .service-warning-bar {
+      background-color: var(--accent-red);
+      color: #070709;
+      font-weight: bold;
+      font-size: 11px;
+      letter-spacing: 1.4px;
+      padding: 4px 16px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .spoiler-banner {
+      background-color: #19130c;
+      border-bottom: 1px solid var(--accent-amber);
+      color: var(--text-main);
+      padding: 8px 16px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .spoiler-banner.hidden {
+      display: none;
+    }
+
+    /* HEADER */
+    header {
+      background-color: var(--bg-panel);
+      border-bottom: 2px solid var(--border-main);
+      padding: 14px 20px;
+    }
+
+    .header-grid {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .emblem-box {
+      width: 66px;
+      height: 66px;
+      border: 1px solid var(--accent-red);
+      background: #0c0c0f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+    }
+
+    .title-block h1 {
+      font-size: 21px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--text-main);
+      font-weight: bold;
+    }
+
+    .title-block .subtitle {
+      color: var(--accent-red);
+      font-size: 12px;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+      font-weight: bold;
+    }
+
+    .title-block .meta-line {
+      color: var(--text-muted);
+      font-size: 11px;
+      margin-top: 5px;
+    }
+
+    .telemetry-panel {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      gap: 5px 14px;
+      border: 1px solid var(--border-main);
+      background: #0b0b0e;
+      padding: 8px 12px;
+      font-size: 11px;
+    }
+
+    .telemetry-item span.label {
+      color: var(--text-muted);
+    }
+
+    .telemetry-item span.val {
+      color: var(--text-main);
+      font-weight: bold;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-amber);
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    .status-dot.red {
+      background-color: var(--accent-red-bright);
+      box-shadow: 0 0 6px var(--accent-red-bright);
+    }
+
+    /* CONTROLS BAR (CLEARANCE 0-IV + FX + COUNTER) */
+    .control-bar {
+      background-color: #0d0d11;
+      border-bottom: 1px solid var(--border-main);
+      padding: 10px 20px;
+    }
+
+    .control-bar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .clearance-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .clearance-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-right: 4px;
+    }
+
+    .btn-terminal {
+      background: var(--bg-panel-alt);
+      color: var(--text-main);
+      border: 1px solid var(--border-main);
+      padding: 5px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-terminal:hover {
+      border-color: var(--text-main);
+      background: #222229;
+    }
+
+    .btn-terminal.active {
+      background: var(--accent-red);
+      color: #070709;
+      border-color: var(--accent-red-bright);
+      font-weight: bold;
+    }
+
+    .btn-terminal.amber-active {
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+    }
+
+    .clearance-info-strip {
+      max-width: 1440px;
+      margin: 8px auto 0 auto;
+      padding: 6px 10px;
+      background: #09090c;
+      border: 1px solid var(--border-main);
+      border-left: 3px solid var(--accent-red);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 11px;
+    }
+
+    .doc-counter-badge {
+      background: #15151b;
+      border: 1px solid var(--border-main);
+      padding: 2px 8px;
+      color: var(--accent-amber);
+      font-weight: bold;
+    }
+
+    /* NAVIGATION TABS */
+    nav.main-nav {
+      background-color: var(--bg-panel);
+      border-bottom: 2px solid var(--accent-red);
+    }
+
+    .nav-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--border-main);
+      color: var(--text-muted);
+      padding: 11px 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: left;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: background 0.15s, color 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-tab:first-child {
+      border-left: 1px solid var(--border-main);
+    }
+
+    .nav-tab .tab-index {
+      font-size: 10px;
+      color: var(--accent-red);
+      letter-spacing: 1px;
+    }
+
+    .nav-tab .tab-name {
+      font-weight: bold;
+      letter-spacing: 0.4px;
+    }
+
+    .nav-tab:hover {
+      background-color: #18181f;
+      color: var(--text-main);
+    }
+
+    .nav-tab.active {
+      background-color: var(--accent-red);
+      color: #070709;
+    }
+
+    .nav-tab.active .tab-index {
+      color: #070709;
+      font-weight: bold;
+    }
+
+    /* MAIN WORKSPACE */
+    main {
+      flex: 1;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 22px 20px;
+    }
+
+    .section-view {
+      display: none;
+      animation: sectionFade 0.22s ease-out;
+    }
+
+    .section-view.active {
+      display: block;
+    }
+
+    @keyframes sectionFade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SECTION HEADERS */
+    .section-header {
+      border: 1px solid var(--border-main);
+      border-left: 4px solid var(--accent-red);
+      background: var(--bg-panel);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .section-header h2 {
+      font-size: 19px;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+      color: var(--text-main);
+    }
+
+    .section-header .doc-code {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* STAMPS & VERIFICATION BADGES */
+    .stamp {
+      display: inline-block;
+      border: 2px solid var(--accent-red);
+      color: var(--accent-red);
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transform: rotate(-1.5deg);
+      background: rgba(201, 42, 42, 0.08);
+      user-select: none;
+    }
+
+    .stamp.amber {
+      border-color: var(--accent-amber);
+      color: var(--accent-amber);
+      background: rgba(217, 155, 38, 0.08);
+    }
+
+    .stamp.cyan {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      background: rgba(82, 139, 139, 0.08);
+    }
+
+    .v-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      border: 1px solid;
+      vertical-align: middle;
+    }
+
+    .v-canon {
+      color: #6bc47d;
+      border-color: #2f683b;
+      background: rgba(47, 104, 59, 0.18);
+    }
+
+    .v-interp {
+      color: var(--accent-amber);
+      border-color: #7a5513;
+      background: rgba(217, 155, 38, 0.14);
+    }
+
+    .v-recon {
+      color: #7ab3ef;
+      border-color: #2c5580;
+      background: rgba(82, 139, 190, 0.15);
+    }
+
+    .v-unknown {
+      color: #ff7a72;
+      border-color: var(--border-red);
+      background: rgba(201, 42, 42, 0.16);
+    }
+
+    /* GRID LAYOUTS & PANELS */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .grid-sidebar {
+      display: grid;
+      grid-template-columns: 1.7fr 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-main);
+      padding: 16px;
+      position: relative;
+    }
+
+    .panel-paper {
+      background-color: var(--bg-paper);
+      border: 1px solid #38342c;
+      padding: 16px;
+      position: relative;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: var(--accent-red);
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 7px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title span.meta {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    p {
+      margin-bottom: 10px;
+      text-align: justify;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    .quote-directive {
+      border-left: 3px solid var(--accent-red);
+      background: #0c0c0f;
+      padding: 10px 14px;
+      margin: 12px 0;
+      font-style: normal;
+      color: var(--text-main);
+      font-size: 13px;
+    }
+
+    .quote-directive .source {
+      display: block;
+      margin-top: 5px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* NEWS & BULLETINS */
+    .news-item {
+      border: 1px solid var(--border-main);
+      background: #0d0d11;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .news-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      border-bottom: 1px dashed var(--border-main);
+      padding-bottom: 4px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .news-category {
+      color: var(--accent-amber);
+      font-weight: bold;
+    }
+
+    .news-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-bottom: 5px;
+    }
+
+    /* TABLES */
+    .tech-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .tech-table th,
+    .tech-table td {
+      border: 1px solid var(--border-main);
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .tech-table th {
+      background-color: #18181f;
+      color: var(--accent-red);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .tech-table tr:nth-child(even) td {
+      background-color: #0e0e12;
+    }
+
+    /* PENROSE SVG SCHEMATIC */
+    .schematic-container {
+      background-color: #08080b;
+      border: 1px solid var(--border-main);
+      padding: 14px;
+      margin-bottom: 18px;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .schematic-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 10px;
+    }
+
+    .status-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .ship-svg-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .ship-module-hotspot {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ship-module-hotspot:hover rect,
+    .ship-module-hotspot:hover polygon {
+      stroke: var(--accent-red-bright);
+      stroke-width: 2.5;
+      fill: rgba(201, 42, 42, 0.22);
+    }
+
+    .module-inspector {
+      margin-top: 12px;
+      border: 1px solid var(--border-red);
+      background: #120b0d;
+      padding: 10px 14px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* FILTERS & ARCHIVE CARDS */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      background: var(--bg-panel);
+      padding: 12px;
+      border: 1px solid var(--border-main);
+      align-items: center;
+    }
+
+    .input-terminal {
+      background: #08080a;
+      border: 1px solid var(--border-main);
+      color: var(--text-main);
+      padding: 7px 11px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .input-terminal:focus {
+      outline: none;
+      border-color: var(--accent-red);
+    }
+
+    .archive-card {
+      border: 1px solid var(--border-main);
+      background: var(--bg-panel);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      transition: border-color 0.15s ease;
+    }
+
+    .archive-card:hover {
+      border-color: var(--accent-red);
+    }
+
+    .archive-card.classified-card {
+      border-color: var(--border-red);
+      background: #140d0f;
+    }
+
+    .archive-card.locked-card {
+      border-style: dashed;
+      border-color: #4a2323;
+      background: #0c090a;
+      opacity: 0.88;
+    }
+
+    .card-top-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 5px;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .card-significance {
+      font-size: 11px;
+      background: #0b0b0e;
+      border-left: 2px solid var(--accent-amber);
+      padding: 7px 9px;
+      color: var(--text-muted);
+    }
+
+    /* SUB-NAVIGATION FOR ROTFRONT */
+    .subnav-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 10px;
+    }
+
+    /* REPLIKA CATALOG GRID */
+    .replika-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .replika-card {
+      border: 1px solid var(--border-main);
+      background: var(--bg-panel);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .replika-card:hover {
+      border-color: var(--accent-red-bright);
+      background: #15151c;
+    }
+
+    .replika-code-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 8px;
+    }
+
+    .replika-code-big {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--accent-red);
+      letter-spacing: 2px;
+    }
+
+    .replika-German {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .stability-pill {
+      font-size: 10px;
+      padding: 2px 6px;
+      border: 1px solid var(--border-main);
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    /* DIRECTIVES & MODAL VIEWER */
+    .directive-row {
+      border: 1px solid var(--border-main);
+      background: var(--bg-panel);
+      padding: 12px 14px;
+      margin-bottom: 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .directive-row:hover {
+      background: #191920;
+      border-color: var(--accent-red);
+    }
+
+    .directive-row.locked {
+      opacity: 0.72;
+      border-style: dashed;
+    }
+
+    /* MODAL OVERLAY (FOR DIRECTIVES, ROTFRONT DOCS & REPLIKA DOSSIERS) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.86);
+      z-index: 950;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .modal-window {
+      background: var(--bg-paper);
+      border: 2px solid var(--accent-red);
+      max-width: 980px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 20px;
+      box-shadow: 0 0 45px rgba(0, 0, 0, 0.95);
+    }
+
+    .modal-header {
+      border-bottom: 2px solid var(--border-main);
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .dossier-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border-main);
+      padding-bottom: 10px;
+    }
+
+    .persona-assessment-box {
+      border: 1px solid var(--border-red);
+      background: #12090b;
+      padding: 14px;
+      margin-top: 14px;
+    }
+
+    .redacted {
+      background: var(--accent-red);
+      color: var(--accent-red);
+      padding: 0 4px;
+      user-select: none;
+    }
+
+    .redacted.revealed {
+      background: rgba(201, 42, 42, 0.2);
+      color: #ff8787;
+      border-bottom: 1px dashed var(--accent-red);
+      user-select: text;
+    }
+
+    .locked-notice-box {
+      border: 1px dashed var(--border-red);
+      background: #12080a;
+      padding: 18px;
+      text-align: center;
+      color: #ff8080;
+      margin: 12px 0;
+    }
+
+    /* TERMINAL CONSOLE LOGS */
+    .terminal-console {
+      background: #060608;
+      border: 1px solid var(--border-main);
+      padding: 14px;
+      font-size: 12px;
+      height: 390px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+    }
+
+    .log-entry {
+      margin-bottom: 6px;
+      border-bottom: 1px dotted #1b1b22;
+      padding-bottom: 4px;
+    }
+
+    .log-entry.warn {
+      color: var(--accent-amber);
+    }
+
+    .log-entry.crit {
+      color: var(--accent-red-bright);
+      font-weight: bold;
+    }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--accent-red);
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border-main);
+      padding: 12px 20px;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1120px) {
+      .nav-container {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .replika-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 860px) {
+      .header-grid {
+        grid-template-columns: 1fr;
+      }
+      .nav-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .grid-2, .grid-3, .grid-sidebar, .replika-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ==========================================================================
+       ПЛАВНЫЕ АНИМАЦИИ И ПЕРЕХОДЫ (по образцу aeon_central_information_network)
+       ========================================================================== */
+    html { scroll-behavior: smooth; }
+
+    /* --- Фон «полоски телевизора» --- */
+    .tv-stripes {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+      opacity: 1;
+      transition: opacity 0.4s ease;
+      /* ползущие горизонтальные строки развёртки */
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(230, 222, 200, 0.045) 0px,
+          rgba(230, 222, 200, 0.045) 1px,
+          transparent 1px,
+          transparent 4px
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 118px,
+          rgba(201, 42, 42, 0.07) 118px,
+          rgba(201, 42, 42, 0.07) 122px
+        );
+      background-size: 100% 4px, 100% 122px;
+      animation: tvCrawl 1.2s linear infinite, tvJitter 6s steps(1, end) infinite;
+    }
+
+    /* широкая «рулонная» полоса, медленно идущая сверху вниз */
+    .tv-stripes::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 22vh;
+      top: -25vh;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(201, 42, 42, 0.07) 40%,
+        rgba(230, 222, 200, 0.06) 50%,
+        rgba(201, 42, 42, 0.07) 60%,
+        transparent 100%
+      );
+      animation: tvRoll 8s linear infinite;
+    }
+
+    /* тонкая яркая линия-помеха */
+    .tv-stripes::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      top: -5%;
+      background: rgba(201, 42, 42, 0.16);
+      box-shadow: 0 0 12px rgba(201, 42, 42, 0.35);
+      animation: scanlineSweep 9s linear infinite;
+    }
+
+    body.crt-disabled .tv-stripes { opacity: 0; }
+
+    @keyframes tvCrawl {
+      from { background-position: 0 0, 0 0; }
+      to   { background-position: 0 4px, 0 122px; }
+    }
+
+    @keyframes tvJitter {
+      0%, 100% { transform: translateX(0); }
+      92% { transform: translateX(0); }
+      93% { transform: translateX(-3px); }
+      94% { transform: translateX(2px); }
+      95% { transform: translateX(0); }
+    }
+
+    @keyframes tvRoll {
+      from { transform: translateY(0); }
+      to   { transform: translateY(150vh); }
+    }
+
+    @keyframes scanlineSweep {
+      0%   { top: -5%; }
+      100% { top: 105%; }
+    }
+
+    /* бегущая полоса и линия поверх интерфейса — очень лёгкие */
+    .crt-overlay::before {
+      content: "";
+      position: fixed;
+      left: 0;
+      right: 0;
+      height: 14vh;
+      top: -16vh;
+      background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(230, 222, 200, 0.03),
+        transparent
+      );
+      animation: tvRoll 11s linear infinite;
+    }
+
+    .crt-overlay::after {
+      content: "";
+      position: fixed;
+      left: 0;
+      right: 0;
+      height: 3px;
+      top: -5%;
+      background: rgba(201, 42, 42, 0.12);
+      box-shadow: 0 0 12px rgba(201, 42, 42, 0.3);
+      animation: scanlineSweep 9s linear infinite;
+    }
+
+    /* --- Загрузочный экран --- */
+    .boot-progress-box { margin-top: 14px; }
+
+    .boot-progress-bar {
+      width: 100%;
+      max-width: 820px;
+      height: 16px;
+      border: 1px solid var(--border-main);
+      background: #111;
+      padding: 2px;
+    }
+
+    .boot-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent-red);
+      transition: width 0.18s linear;
+    }
+
+    @keyframes fadeInLine {
+      from { opacity: 0; transform: translateX(-6px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* --- Индикаторы и пульс --- */
+    .status-dot { animation: pulseDot 2s infinite; }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .service-warning-bar,
+    .spoiler-banner,
+    header,
+    .control-bar,
+    nav.main-nav {
+      animation: itemIn 0.45s ease-out backwards;
+    }
+    .spoiler-banner { animation-delay: 0.05s; }
+    header { animation-delay: 0.1s; }
+    .control-bar { animation-delay: 0.15s; }
+    nav.main-nav { animation-delay: 0.2s; }
+
+    /* --- Общие переходы для интерактива --- */
+    .btn-terminal {
+      transition: all 0.15s ease;
+    }
+    .btn-terminal:hover {
+      box-shadow: 0 0 10px rgba(201, 42, 42, 0.22);
+    }
+    .btn-terminal:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .nav-tab {
+      position: relative;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    }
+    .nav-tab::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      background: var(--accent-red-bright);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.25s ease;
+    }
+    .nav-tab:hover::after { transform: scaleX(1); }
+    .nav-tab.active::after { background: #070709; transform: scaleX(1); }
+    .nav-tab:active { transform: scale(0.98); }
+
+    .input-terminal {
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .input-terminal:focus {
+      box-shadow: 0 0 0 1px var(--accent-red), 0 0 12px rgba(201, 42, 42, 0.25);
+      background: #0b0b0e;
+    }
+
+    .panel, .panel-paper, .news-item, .quote-directive, .schematic-container, .module-inspector {
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+    .panel:hover, .panel-paper:hover { border-color: #46423a; }
+    .news-item:hover { border-color: #46423a; background: #101015; }
+
+    .archive-card,
+    .replika-card,
+    .directive-row {
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+    .archive-card:hover,
+    .replika-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 18px rgba(201, 42, 42, 0.16);
+    }
+    .directive-row:hover { transform: translateX(3px); }
+    .archive-card:active,
+    .replika-card:active,
+    .directive-row:active { transform: scale(0.99); }
+
+    .tech-table td, .tech-table th { transition: background 0.15s ease; }
+    .tech-table tbody tr:hover td { background: #17171f; }
+
+    .v-badge, .stamp, .stability-pill, .doc-counter-badge {
+      transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .redacted {
+      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* --- SVG-схема корабля --- */
+    .ship-module-hotspot rect,
+    .ship-module-hotspot polygon {
+      transition: stroke 0.2s ease, stroke-width 0.2s ease, fill 0.2s ease;
+    }
+    .ship-module-hotspot.selected rect,
+    .ship-module-hotspot.selected polygon {
+      stroke: var(--accent-red-bright);
+      stroke-width: 2.5;
+      fill: rgba(201, 42, 42, 0.22);
+    }
+    #svg-status-label { transition: fill 0.3s ease; }
+
+    /* --- Появление элементов --- */
+    @keyframes itemIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-10px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .section-view.active .section-header { animation: slideInLeft 0.35s ease-out backwards; }
+    .section-view.active .panel,
+    .section-view.active .panel-paper,
+    .section-view.active .schematic-container,
+    .section-view.active .filter-bar { animation: itemIn 0.35s ease-out backwards; }
+    .section-view.active .panel:nth-child(2),
+    .section-view.active .panel-paper:nth-child(2) { animation-delay: 0.06s; }
+    .section-view.active .panel:nth-child(3),
+    .section-view.active .panel-paper:nth-child(3) { animation-delay: 0.12s; }
+    .section-view.active .panel:nth-child(n+4),
+    .section-view.active .panel-paper:nth-child(n+4) { animation-delay: 0.18s; }
+
+    .rtf-subview { animation: sectionFade 0.22s ease-out; }
+
+    .archive-card,
+    .replika-card,
+    .directive-row,
+    .news-item,
+    .log-entry,
+    .locked-notice-box,
+    .persona-assessment-box {
+      animation: itemIn 0.35s ease-out backwards;
+    }
+    .archive-card:nth-child(2), .replika-card:nth-child(2), .directive-row:nth-child(2), .news-item:nth-child(2) { animation-delay: 70ms; }
+    .archive-card:nth-child(3), .replika-card:nth-child(3), .directive-row:nth-child(3), .news-item:nth-child(3) { animation-delay: 105ms; }
+    .archive-card:nth-child(4), .replika-card:nth-child(4), .directive-row:nth-child(4), .news-item:nth-child(4) { animation-delay: 140ms; }
+    .archive-card:nth-child(5), .replika-card:nth-child(5), .directive-row:nth-child(5), .news-item:nth-child(5) { animation-delay: 175ms; }
+    .archive-card:nth-child(6), .replika-card:nth-child(6), .directive-row:nth-child(6), .news-item:nth-child(6) { animation-delay: 210ms; }
+    .archive-card:nth-child(7), .replika-card:nth-child(7), .directive-row:nth-child(7), .news-item:nth-child(7) { animation-delay: 245ms; }
+    .archive-card:nth-child(8), .replika-card:nth-child(8), .directive-row:nth-child(8), .news-item:nth-child(8) { animation-delay: 280ms; }
+    .archive-card:nth-child(9), .replika-card:nth-child(9), .directive-row:nth-child(9), .news-item:nth-child(9) { animation-delay: 315ms; }
+    .archive-card:nth-child(10), .replika-card:nth-child(10), .directive-row:nth-child(10), .news-item:nth-child(10) { animation-delay: 350ms; }
+    .archive-card:nth-child(11), .replika-card:nth-child(11), .directive-row:nth-child(11), .news-item:nth-child(11) { animation-delay: 385ms; }
+    .archive-card:nth-child(12), .replika-card:nth-child(12), .directive-row:nth-child(12), .news-item:nth-child(12) { animation-delay: 420ms; }
+    .archive-card:nth-child(n+13), .replika-card:nth-child(n+13), .directive-row:nth-child(n+13), .news-item:nth-child(n+13) { animation-delay: 420ms; }
+
+    .log-entry { animation-duration: 0.25s; }
+
+    #session-history-box > div:first-child { animation: slideInLeft 0.3s ease-out; }
+
+    .terminal-console { scroll-behavior: smooth; }
+
+    .stamp { animation: stampIn 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) backwards; }
+    @keyframes stampIn {
+      from { opacity: 0; transform: rotate(-1.5deg) scale(1.6); }
+      to   { opacity: 1; transform: rotate(-1.5deg) scale(1); }
+    }
+
+    /* --- Модальное окно --- */
+    .modal-backdrop { backdrop-filter: blur(2px); }
+    .modal-window {
+      opacity: 0;
+      transform: translateY(14px) scale(0.97);
+      transition: opacity 0.28s ease, transform 0.28s ease;
+    }
+    .modal-backdrop.open .modal-window {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .modal-backdrop.open .modal-header { animation: slideInLeft 0.35s ease-out 0.08s backwards; }
+
+    /* --- Вспышка при обновлении значения --- */
+    .fx-flash { animation: fxFlash 0.6s ease-out; }
+    @keyframes fxFlash {
+      0%   { opacity: 0.2; text-shadow: 0 0 10px rgba(255, 59, 48, 0.9); }
+      100% { opacity: 1; text-shadow: 0 0 0 rgba(255, 59, 48, 0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tv-stripes, .tv-stripes::before, .tv-stripes::after,
+      .crt-overlay::before, .crt-overlay::after { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FAILSAFE: загрузочный экран не может зависнуть, даже если основной скрипт даст сбой -->
+  <script>
+    (function () {
+      function hideBoot() {
+        var b = document.getElementById('boot-screen');
+        if (b) b.classList.add('hidden');
+      }
+      window.__hideBoot = hideBoot;
+      window.addEventListener('error', function () { setTimeout(hideBoot, 300); });
+      window.addEventListener('load', function () { setTimeout(hideBoot, 4000); });
+      document.addEventListener('click', function (e) {
+        if (e.target && e.target.closest && e.target.closest('#boot-screen button')) hideBoot();
+      });
+    })();
+  </script>
+
+
+  <!-- ФОН: ПОЛОСКИ ТЕЛЕВИЗОРА -->
+  <div class="tv-stripes" aria-hidden="true"></div>
+
+  <!-- CRT SCANLINE OVERLAY -->
+  <div class="crt-overlay"></div>
+
+  <!-- INITIAL BIOS BOOT SEQUENCE -->
+  <div id="boot-screen">
+    <div>
+      <div style="color: var(--accent-red); font-weight: bold; letter-spacing: 2px; margin-bottom: 14px;">
+        // AEON CENTRAL INFORMATION NETWORK — OS KERNEL V4.88-EUS (EXPANDED ARCHIVE)
+      </div>
+      <div id="boot-log" class="boot-log-box"></div>
+    </div>
+    <div class="boot-progress-box">
+      <div class="boot-progress-bar"><div class="boot-progress-fill" id="boot-progress-fill"></div></div>
+    </div>
+    <div class="boot-footer">
+      <span style="font-size: 11px; color: var(--text-muted);">НАЦИИ ЕВЗАНА // МИНИСТЕРСТВО ИНФОРМАЦИИ И АРХИВОВ AEON</span>
+      <button class="btn-terminal active" onclick="finishBoot()">[ ПРОПУСТИТЬ ЗАГРУЗКУ // ВХОД В ТЕРМИНАЛ ]</button>
+    </div>
+  </div>
+
+  <!-- TOP SERVICE WARNING -->
+  <div class="service-warning-bar">
+    <span>ВНИМАНИЕ: МАТЕРИАЛЫ ПРЕДНАЗНАЧЕНЫ ДЛЯ СЛУЖЕБНОГО ПОЛЬЗОВАНИЯ. УРОВЕНЬ ДОПУСКА: ИМИТАЦИЯ В РАМКАХ ЛОКАЛЬНОГО УЧЕБНОГО ПРОЕКТА</span>
+    <span>ПРОТОКОЛ КОНТРОЛЯ: AEON-SEC-84/B // НАЦИИ ЕВЗАНА</span>
+  </div>
+
+  <!-- SPOILER & CANON NOTICE BANNER -->
+  <div class="spoiler-banner" id="spoiler-banner">
+    <div>
+      <strong style="color: var(--accent-amber);">[ПРЕДУПРЕЖДЕНИЕ О СЮЖЕТНЫХ СПОЙЛЕРАХ SIGNALIS]:</strong>
+      Разделы «ROTFRONT» и «БАЗА РЕПЛИК» на уровнях допуска III–IV содержат сведения о сюжетных событиях игры. Все записи снабжены маркерами достоверности:
+      <span class="v-badge v-canon">CANON</span>
+      <span class="v-badge v-interp">INTERPRETATION</span>
+      <span class="v-badge v-recon">ARCHIVE RECONSTRUCTION</span>
+      <span class="v-badge v-unknown">UNKNOWN / REDACTED</span>
+    </div>
+    <button class="btn-terminal" onclick="document.getElementById('spoiler-banner').classList.add('hidden')">[ СКРЫТЬ УВЕДОМЛЕНИЕ ]</button>
+  </div>
+
+  <!-- HEADER -->
+  <header class="flicker-target">
+    <div class="header-grid">
+      <!-- GEOMETRIC STATE EMBLEM SVG -->
+      <div class="emblem-box" title="Государственная эмблема AEON // Нация Евзана">
+        <svg viewBox="0 0 100 100" width="54" height="54" aria-label="Эмблема AEON">
+          <polygon points="50,4 94,27 94,73 50,96 6,73 6,27" fill="none" stroke="#c92a2a" stroke-width="3"/>
+          <polygon points="50,15 83,50 50,85 17,50" fill="none" stroke="#e6dec8" stroke-width="2"/>
+          <circle cx="50" cy="50" r="13" fill="none" stroke="#c92a2a" stroke-width="2.5"/>
+          <line x1="50" y1="4" x2="50" y2="96" stroke="#c92a2a" stroke-width="1.2" stroke-dasharray="3,3"/>
+          <line x1="6" y1="50" x2="94" y2="50" stroke="#c92a2a" stroke-width="1.2" stroke-dasharray="3,3"/>
+          <rect x="46" y="46" width="8" height="8" fill="#e6dec8"/>
+        </svg>
+      </div>
+
+      <div class="title-block">
+        <h1>AEON — CENTRAL INFORMATION NETWORK</h1>
+        <div class="subtitle">«ЕДИНСТВО. ДИСЦИПЛИНА. БУДУЩЕЕ.»</div>
+        <div class="meta-line">ГОСУДАРСТВЕННЫЙ ИНФОРМАЦИОННЫЙ ТЕРМИНАЛ НАЦИИ ЕВЗАНА // СЕКТОР СИНХРОНИЗАЦИИ: ХАЙМАТ — РОТФРОНТ — СЕРПИНСКИ</div>
+      </div>
+
+      <div class="telemetry-panel">
+        <div class="telemetry-item">
+          <span class="label">ТЕРМИНАЛ:</span>
+          <span class="val">AEON-TERM-04/S23</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="label">СЕТЬ:</span>
+          <span class="val"><span class="status-dot"></span>СИНХР. 99.4%</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="label">ДОПУСК:</span>
+          <span class="val" id="header-clearance-text" style="color: var(--accent-amber);">УР. 0 // PUBLIC INFORMATION</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="label">ВРЕМЯ СИСТЕМЫ:</span>
+          <span class="val" id="system-clock">ЦИКЛ 84.10.24 // 00:00:00</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CLEARANCE MATRIX (0 - IV) & VISUAL CONTROLS -->
+  <div class="control-bar">
+    <div class="control-bar-inner">
+      <div class="clearance-selector">
+        <span class="clearance-label">УРОВЕНЬ ДОПУСКА:</span>
+        <button class="btn-terminal active" id="btn-cl-0" onclick="setClearance(0)" title="Открытая государственная информация">0 // PUBLIC</button>
+        <button class="btn-terminal" id="btn-cl-1" onclick="setClearance(1)" title="Для обычного служебного персонала">I // AUTHORIZED</button>
+        <button class="btn-terminal" id="btn-cl-2" onclick="setClearance(2)" title="Для технического персонала">II // TECHNICAL</button>
+        <button class="btn-terminal" id="btn-cl-3" onclick="setClearance(3)" title="Для командования и медперсонала">III // COMMAND/MED</button>
+        <button class="btn-terminal" id="btn-cl-4" onclick="setClearance(4)" title="Для высшего командования // Центральный архив">IV // EYES ONLY</button>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <span class="doc-counter-badge" id="global-doc-counter">ДОСТУПНО ДОКУМЕНТОВ: 14 / 32</span>
+        <button class="btn-terminal amber-active" id="btn-crt-toggle" onclick="toggleCRT()">[ ЭЛТ-ПОМЕХИ: ВКЛ ]</button>
+        <button class="btn-terminal" onclick="replayBoot()">[ ПЕРЕЗАПУСК BIOS ]</button>
+      </div>
+    </div>
+
+    <div class="clearance-info-strip">
+      <div id="clearance-desc-bar">
+        <strong>ТЕКУЩИЙ РЕЖИМ [УРОВЕНЬ 0 — PUBLIC INFORMATION]:</strong> Отображаются только открытые государственные сводки, публичные сведения о ROTFRONT, программе Penrose и базовые описания Реплик.
+      </div>
+      <div style="color: var(--text-muted);">
+        СЕССИОННЫХ ОБРАЩЕНИЙ К АРХИВУ: <strong id="session-views-count" style="color: var(--text-main);">0</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION (8 MODULES) -->
+  <nav class="main-nav">
+    <div class="nav-container">
+      <button class="nav-tab active" onclick="switchTab('sec-summary', this)">
+        <span class="tab-index">РАЗДЕЛ I</span>
+        <span class="tab-name">ГЛАВНАЯ СВОДКА</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('sec-aeon', this)">
+        <span class="tab-index">РАЗДЕЛ II</span>
+        <span class="tab-name">СИСТЕМА AEON</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('sec-penrose', this)">
+        <span class="tab-index">РАЗДЕЛ III</span>
+        <span class="tab-name">ПРОГРАММА PENROSE</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('sec-rotfront', this)">
+        <span class="tab-index">РАЗДЕЛ IV // НОВЫЙ</span>
+        <span class="tab-name">ROTFRONT АРХИВ</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('sec-replika', this)">
+        <span class="tab-index">РАЗДЕЛ V // НОВЫЙ</span>
+        <span class="tab-name">БАЗА РЕПЛИК</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('sec-achievements', this)">
+        <span class="tab-index">РАЗДЕЛ VI</span>
+        <span class="tab-name">АРХИВ ДОСТИЖЕНИЙ</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('sec-directives', this)">
+        <span class="tab-index">РАЗДЕЛ VII</span>
+        <span class="tab-name">ДИРЕКТИВЫ</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('sec-logs', this)">
+        <span class="tab-index">РАЗДЕЛ VIII</span>
+        <span class="tab-name">ТЕРМИНАЛ / АУДИТ</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT AREA -->
+  <main>
+
+    <!-- ==========================================
+         SECTION I: ГЛАВНАЯ СВОДКА
+         ========================================== -->
+    <section id="sec-summary" class="section-view active">
+      <div class="section-header">
+        <div>
+          <h2>ГОСУДАРСТВО ПРОДОЛЖАЕТ ДВИЖЕНИЕ ВПЕРЁД</h2>
+          <div class="doc-code">ИНФОРМАЦИОННЫЙ БЮЛЛЕТЕНЬ ЦЕНТРАЛЬНОГО КОМИТЕТА AEON // ДОК. № EUS-INF-84/001</div>
+        </div>
+        <div class="stamp">OFFICIAL RECORD // AEON</div>
+      </div>
+
+      <div class="grid-sidebar">
+        <!-- LEFT COLUMN -->
+        <div class="panel-paper">
+          <div class="panel-title">
+            <span>ОФИЦИАЛЬНОЕ ОБРАЩЕНИЕ К ТРУДОВЫМ И ТЕХНИЧЕСКИМ КАДРАМ</span>
+            <span class="v-badge v-recon">ARCHIVE RECONSTRUCTION</span>
+          </div>
+
+          <p>
+            Граждане и биомеханические кадры Нации Евзана! Завершение очередного производственного цикла подтверждает незыблемость курса, заложенного Великим Революционером и Её Дочерью. В условиях планомерного освоения Солнечной системы именно <strong>железная дисциплина, стандартизация мышления и безоговорочный приоритет коллектива над личным</strong> остаются фундаментом нашего исторического превосходства.
+          </p>
+          <p>
+            Там, где старый имперский порядок порождал хаос, праздность и разобщённость, государственная система <strong>AEON</strong> выстроила безупречный механизм научного и индустриального прогресса. Каждая тонна руды, поднятая из шахт Ленга, каждый расчёт, выполненный в вычислительных центрах Хаймата, и каждый сигнал, отправленный с орбиты Ротфронта, приближают триумф общего будущего.
+          </p>
+
+          <div class="quote-directive">
+            «Личное сомнение — это ржавчина на шестернях коллективного механизма. Дисциплина освобождает гражданина от бремени хаоса и делает его сопричастным вечности Государства».
+            <span class="source">— Из Свода гражданской ответственности AEON, редакция 14-Б</span>
+          </div>
+
+          <!-- DYNAMIC CLEARANCE BLOCK IN SUMMARY -->
+          <div id="summary-clearance-notice" style="margin-top: 14px;"></div>
+
+          <div class="grid-3" style="margin-top: 16px;">
+            <div class="panel" style="padding: 12px;">
+              <div style="font-size: 11px; color: var(--text-muted);">ВЫПОЛНЕНИЕ ГОСПЛАНА</div>
+              <div style="font-size: 21px; font-weight: bold; color: var(--accent-amber); margin: 4px 0;">104.8%</div>
+              <div style="font-size: 11px;">Промышленные комплексы Сектора Ленг и Ротфронт</div>
+            </div>
+            <div class="panel" style="padding: 12px;">
+              <div style="font-size: 11px; color: var(--text-muted);">ИНДЕКС ТРУДОВОЙ ДИСЦИПЛИНЫ</div>
+              <div style="font-size: 21px; font-weight: bold; color: var(--text-main); margin: 4px 0;">НОРМА-А</div>
+              <div style="font-size: 11px;">Отклонения устраняются в плановом порядке</div>
+            </div>
+            <div class="panel" style="padding: 12px;">
+              <div style="font-size: 11px; color: var(--text-muted);">ДАЛЬНИЙ КОСМОС (PENROSE)</div>
+              <div style="font-size: 21px; font-weight: bold; color: var(--accent-red); margin: 4px 0;">АКТИВНО</div>
+              <div style="font-size: 11px;">Экспедиционный флот за пределами облака Оорта</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: LATEST OFFICIAL MESSAGES -->
+        <div class="panel">
+          <div class="panel-title">
+            <span>ПОСЛЕДНИЕ ОФИЦИАЛЬНЫЕ СООБЩЕНИЯ</span>
+            <span class="meta">ЛЕНТА ИНТРАСЕТИ</span>
+          </div>
+
+          <div class="news-item">
+            <div class="news-meta">
+              <span>ДОК: #NWS-84-109</span>
+              <span class="news-category">[ПРОМЫШЛЕННОСТЬ]</span>
+              <span>ДАТА: 84.10.22</span>
+            </div>
+            <div class="news-title">Перевыполнение квот добычи на объекте S-23 «Серпински»</div>
+            <p style="font-size: 12px; color: var(--text-muted);">
+              Перевоспитательно-горнодобывающий комплекс S-23 на планете Ленг отчитался о досрочном завершении квартального плана переработки руды благодаря слаженной работе подразделений MNHR и ARAR.
+            </p>
+          </div>
+
+          <div class="news-item">
+            <div class="news-meta">
+              <span>ДОК: #NWS-84-104</span>
+              <span class="news-category">[РЕГИОН РОТФРОНТ]</span>
+              <span>ДАТА: 84.10.18</span>
+            </div>
+            <div class="news-title">Укрепление коммунального надзора в Секторе C Ротфронта</div>
+            <p style="font-size: 12px; color: var(--text-muted);">
+              Домовые комитеты (Blockwart) рапортуют о 100%-й проверке личных библиотек и радиоприёмников в жилом блоке 6. Неучтённые печатные издания изъяты.
+            </p>
+          </div>
+
+          <div class="news-item">
+            <div class="news-meta">
+              <span>ДОК: #NWS-84-098</span>
+              <span class="news-category">[КОСМОС // PENROSE]</span>
+              <span>ДАТА: 84.10.11</span>
+            </div>
+            <div class="news-title">Торжественный запуск новой волны разведчиков типа «Пенроуз»</div>
+            <p style="font-size: 12px; color: var(--text-muted);">
+              С орбитального катапультного кольца спутника Ротфронта осуществлён пуск судов дальней разведки. Каждая завершённая задача укрепляет научный потенциал следующего поколения.
+            </p>
+          </div>
+
+          <div class="news-item" style="margin-bottom: 0;">
+            <div class="news-meta">
+              <span>ДОК: #NWS-84-091</span>
+              <span class="news-category">[ДИСЦИПЛИНА]</span>
+              <span>ДАТА: 84.10.03</span>
+            </div>
+            <div class="news-title">Утверждён обновлённый регламент стабилизации нейронных матриц</div>
+            <p style="font-size: 12px; color: var(--text-muted);">
+              Инженерным кадром предписано неукоснительно соблюдать протоколы предотвращения деградации персоны (Persona Degradation) у биомеханических единиц.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION II: AEON — ГОСУДАРСТВЕННАЯ СИСТЕМА
+         ========================================== -->
+    <section id="sec-aeon" class="section-view">
+      <div class="section-header">
+        <div>
+          <h2>AEON — ЦЕНТРАЛЬНАЯ ОРГАНИЗАЦИОННАЯ СТРУКТУРА ГОСУДАРСТВА</h2>
+          <div class="doc-code">СПРАВОЧНИК АДМИНИСТРАТИВНОГО И ИДЕОЛОГИЧЕСКОГО УСТРОЙСТВА // ДОК. № AEON-SYS-12/A</div>
+        </div>
+        <div class="stamp">AUTHORIZED PERSONNEL</div>
+      </div>
+
+      <div class="grid-3">
+        <div class="panel-paper">
+          <div class="panel-title">
+            <span>01. ИДЕОЛОГИЯ И КОЛЛЕКТИВ</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          <p style="font-size: 13px;">
+            Нация Евзана отвергает индивидуализм как пережиток имперского упадка. Жизнь каждого Гештальта (человека) и функционирование каждой Реплики подчинены единой государственной цели.
+          </p>
+          <div class="quote-directive" style="font-size: 12px;">
+            «Индивидуальность допустима лишь в той мере, в какой она повышает КПД выполнения поставленной директивы».
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted);">АРХИВНЫЙ ИНДЕКС: ИД-01/ЕВЗ</div>
+        </div>
+
+        <div class="panel-paper">
+          <div class="panel-title">
+            <span>02. АДМИНИСТРАТИВНАЯ СИСТЕМА</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          <p style="font-size: 13px;">
+            <strong>AEON</strong> (Государственное ведомство управления, планирования и производства Реплик) координирует распределение ресурсов между планетами и спутниками: столичным Хайматом (Heimat), индустриальным Ленгом (Leng), колонизируемым Ротфронтом (Rotfront) и аграрным Винетой (Vineta).
+          </p>
+          <p style="font-size: 13px;">
+            На ключевых объектах управление осуществляется связкой Командующего блока (FKLR), Администратора (ADLR) и инспекции Блокварта (KLBR).
+          </p>
+          <div style="font-size: 11px; color: var(--text-muted);">АРХИВНЫЙ ИНДЕКС: АДМ-02/ЕВЗ</div>
+        </div>
+
+        <div class="panel-paper">
+          <div class="panel-title">
+            <span>03. ПРОМЫШЛЕННОСТЬ И РЕПЛИКИ</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          <p style="font-size: 13px;">
+            Основа технологического превосходства Нации — синтез биомеханических тел и перенос нейронных паттернов эталонных граждан в матрицы Реплик при участии биорезонансных технологий.
+          </p>
+          <p style="font-size: 13px;">
+            Точное соблюдение эксплуатационных инструкций гарантирует бесперебойную работу фабрик, рудников и оборонных рубежей в любых климатических условиях.
+          </p>
+          <div style="font-size: 11px; color: var(--text-muted);">АРХИВНЫЙ ИНДЕКС: ПРОМ-03/ЕВЗ</div>
+        </div>
+
+        <div class="panel-paper">
+          <div class="panel-title">
+            <span>04. ОБРАЗОВАТЕЛЬНАЯ СИСТЕМА</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          <p style="font-size: 13px;">
+            Политехнические школы (включая школу им. Мандельброта на Ротфронте) с ранних лет формируют у молодёжи техническую грамотность, бдительность и нетерпимость к отклонениям от коллективной нормы.
+          </p>
+          <p style="font-size: 13px;">
+            По окончании обучения выпускники распределяются на военную службу (на Винету или орбитальный флот), в радиотехнические войска либо на производственные комплексы.
+          </p>
+          <div style="font-size: 11px; color: var(--text-muted);">АРХИВНЫЙ ИНДЕКС: ОБР-04/ЕВЗ</div>
+        </div>
+
+        <div class="panel-paper">
+          <div class="panel-title">
+            <span>05. ПРОТЕКТОРАТ И БЛОКВАРТ</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          <p style="font-size: 13px;">
+            Охрана правопорядка на объектах и в жилых секторах возложена на Службу Протектората (единицы STAR, STCR и KLBR).
+          </p>
+          <p style="font-size: 13px;">
+            Любые проявления несанкционированного хранения предметов прошлого, распространения запрещённой литературы или уклонения от трудовой повинности пресекаются немедленно.
+          </p>
+          <div style="font-size: 11px; color: var(--text-muted);">АРХИВНЫЙ ИНДЕКС: ДИС-05/ЕВЗ</div>
+        </div>
+
+        <div class="panel-paper">
+          <div class="panel-title">
+            <span>06. БИОРЕЗОНАНС И КОСМОС</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          <p style="font-size: 13px;">
+            Климатическое терраформирование спутников, искусственная гравитация, копирование нейронных матриц Реплик и дальняя связь опираются на <strong>биорезонанс</strong> — фундаментальную технологию, поставленную на службу Нации.
+          </p>
+          <div id="aeon-classified-note" style="font-size: 11px; color: var(--text-muted);">АРХИВНЫЙ ИНДЕКС: КОС-06/ЕВЗ</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION III: ПРОГРАММА PENROSE
+         ========================================== -->
+    <section id="sec-penrose" class="section-view">
+      <div class="section-header">
+        <div>
+          <h2>ГОСУДАРСТВЕННАЯ КОСМИЧЕСКАЯ ПРОГРАММА «PENROSE»</h2>
+          <div class="doc-code">ТЕХНИЧЕСКИЙ И ЭКСПЕДИЦИОННЫЙ РЕГЛАМЕНТ ДАЛЬНЕЙ РАЗВЕДКИ // ДОК. № PNR-512/TECH</div>
+        </div>
+        <div class="stamp amber" id="penrose-header-stamp">MISSION STATUS: IN TRANSIT</div>
+      </div>
+
+      <!-- INTERACTIVE SVG SCHEMATIC -->
+      <div class="schematic-container">
+        <div class="schematic-toolbar">
+          <div>
+            <strong style="color: var(--accent-red); letter-spacing: 1px;">ТЕХНИЧЕСКАЯ СХЕМА СУДНА КЛАССА «PENROSE» (БОРТ PENROSE-512)</strong>
+            <span class="v-badge v-canon" style="margin-left: 6px;">CANON LAYOUT</span>
+            <div style="font-size: 11px; color: var(--text-muted);">Нажмите на отсек чертежа для вызова телеметрии и инспекции узла</div>
+          </div>
+          <div class="status-group">
+            <span style="font-size: 11px; color: var(--text-muted); align-self: center; margin-right: 4px;">СТАТУС МИССИИ:</span>
+            <button class="btn-terminal" onclick="setPenroseStatus('PREPARATION', this)">PREPARATION</button>
+            <button class="btn-terminal active" onclick="setPenroseStatus('IN TRANSIT', this)">IN TRANSIT</button>
+            <button class="btn-terminal" onclick="setPenroseStatus('SIGNAL LOST', this)">SIGNAL LOST</button>
+            <button class="btn-terminal" onclick="setPenroseStatus('ARCHIVE ONLY', this)">ARCHIVE ONLY</button>
+          </div>
+        </div>
+
+        <div class="ship-svg-wrapper">
+          <svg viewBox="0 0 920 260" width="100%" height="250" style="min-width: 720px; display: block;">
+            <line x1="20" y1="130" x2="900" y2="130" stroke="#2e2c27" stroke-width="1" stroke-dasharray="6,4"/>
+            <line x1="150" y1="20" x2="150" y2="240" stroke="#2e2c27" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="450" y1="20" x2="450" y2="240" stroke="#2e2c27" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="720" y1="20" x2="720" y2="240" stroke="#2e2c27" stroke-width="1" stroke-dasharray="4,4"/>
+
+            <text x="25" y="30" fill="#948e7e" font-size="10" font-family="Courier New">ЧЕРТЁЖ: PNR-V4 // ПРОДОЛЬНЫЙ РАЗРЕЗ (УСЛОВНАЯ СХЕМА АРХИВА AEON)</text>
+            <text x="725" y="30" fill="#c92a2a" font-size="10" font-family="Courier New" id="svg-status-label">TELEMETRY: ACTIVE</text>
+
+            <!-- 1. BOW / FLIGHT DECK -->
+            <g class="ship-module-hotspot" onclick="inspectShipModule(0)">
+              <polygon points="60,130 150,85 150,175" fill="rgba(201,42,42,0.12)" stroke="#e6dec8" stroke-width="1.8"/>
+              <text x="102" y="134" fill="#e6dec8" font-size="10" font-family="Courier New" text-anchor="middle">01. РУБКА</text>
+            </g>
+
+            <!-- 2. RADIO & AVIONICS -->
+            <g class="ship-module-hotspot" onclick="inspectShipModule(1)">
+              <rect x="150" y="80" width="135" height="100" fill="rgba(230,222,200,0.05)" stroke="#e6dec8" stroke-width="1.8"/>
+              <text x="217" y="125" fill="#e6dec8" font-size="10" font-family="Courier New" text-anchor="middle">02. РАДИОУЗЕЛ</text>
+              <text x="217" y="140" fill="#948e7e" font-size="9" font-family="Courier New" text-anchor="middle">СВЯЗЬ / ПЕЛЕНГ</text>
+            </g>
+
+            <!-- 3. CREW QUARTERS & CRYO -->
+            <g class="ship-module-hotspot" onclick="inspectShipModule(2)">
+              <rect x="285" y="70" width="165" height="120" fill="rgba(230,222,200,0.05)" stroke="#e6dec8" stroke-width="1.8"/>
+              <line x1="285" y1="130" x2="450" y2="130" stroke="#948e7e" stroke-width="1"/>
+              <text x="367" y="105" fill="#e6dec8" font-size="10" font-family="Courier New" text-anchor="middle">03. КАЮТА ГЕШТАЛЬТА</text>
+              <text x="367" y="160" fill="#d99b26" font-size="10" font-family="Courier New" text-anchor="middle">КРИОКАПСУЛА / МЕДБЛОК</text>
+            </g>
+
+            <!-- 4. LSTR CALIBRATION & MAINTENANCE -->
+            <g class="ship-module-hotspot" onclick="inspectShipModule(3)">
+              <rect x="450" y="75" width="150" height="110" fill="rgba(230,222,200,0.05)" stroke="#e6dec8" stroke-width="1.8"/>
+              <text x="525" y="125" fill="#e6dec8" font-size="10" font-family="Courier New" text-anchor="middle">04. ОТСЕК LSTR</text>
+              <text x="525" y="142" fill="#948e7e" font-size="9" font-family="Courier New" text-anchor="middle">КАЛИБРОВКА / СКЛАД</text>
+            </g>
+
+            <!-- 5. REACTOR & LIFE SUPPORT -->
+            <g class="ship-module-hotspot" onclick="inspectShipModule(4)">
+              <rect x="600" y="62" width="145" height="136" fill="rgba(201,42,42,0.15)" stroke="#c92a2a" stroke-width="2"/>
+              <circle cx="672" cy="130" r="24" fill="none" stroke="#d99b26" stroke-width="1.5" stroke-dasharray="4,2"/>
+              <text x="672" y="128" fill="#e6dec8" font-size="10" font-family="Courier New" text-anchor="middle">05. РЕАКТОР</text>
+              <text x="672" y="143" fill="#c92a2a" font-size="9" font-family="Courier New" text-anchor="middle">ОХЛАЖДЕНИЕ</text>
+            </g>
+
+            <!-- 6. THRUST NOZZLES -->
+            <g class="ship-module-hotspot" onclick="inspectShipModule(5)">
+              <polygon points="745,75 845,52 845,115 745,105" fill="rgba(230,222,200,0.08)" stroke="#e6dec8" stroke-width="1.5"/>
+              <polygon points="745,155 845,145 845,208 745,185" fill="rgba(230,222,200,0.08)" stroke="#e6dec8" stroke-width="1.5"/>
+              <text x="802" y="134" fill="#948e7e" font-size="10" font-family="Courier New" text-anchor="middle">06. ДЮЗЫ</text>
+            </g>
+
+            <text x="450" y="236" fill="#948e7e" font-size="10" font-family="Courier New" text-anchor="middle">|-- ГАБАРИТНАЯ ДЛИНА РАЗВЕДЫВАТЕЛЬНОГО КОРПУСА (ЗАПУСК С КАТАПУЛЬТЫ МАССЫ РОТФРОНТА) --|</text>
+          </svg>
+        </div>
+
+        <div class="module-inspector" id="ship-module-inspector">
+          <div>
+            <strong style="color: var(--accent-amber);" id="mod-title">ВЫБРАН УЗЕЛ: 05. РЕАКТОРНЫЙ ОТСЕК И СИСТЕМА ЖИЗНЕОБЕСПЕЧЕНИЯ</strong>
+            <div id="mod-desc" style="color: var(--text-main); margin-top: 3px;">
+              Обеспечивает автономное питание бортовых систем на протяжении Фаз I и II (до 3000 циклов). Начиная с Фазы III (после 3000 циклов) ввиду износа уплотнителей возможны утечки хладагента и радиационное заражение жилых палуб.
+            </div>
+          </div>
+          <div class="stamp" id="mod-stamp">НОРМА РЕГЛАМЕНТА</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel-paper">
+          <div class="panel-title">
+            <span>НАЗНАЧЕНИЕ ПРОГРАММЫ И РЕГЛАМЕНТ ЭКИПАЖА</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          <p>
+            «Экспедиция представляет интересы государства за пределами освоенного пространства. Каждая завершённая задача укрепляет научный потенциал следующего поколения. Экипаж обязан сохранять дисциплину и следовать установленному регламенту».
+          </p>
+          <p>
+            Программа <strong>«Penrose»</strong> предназначена для поиска пригодных для терраформирования экзопланет и минеральных ресурсов за пределами облака Оорта. Судно выводится на траекторию гравитационной рельсовой катапультой со спутника <strong>Ротфронт</strong>.
+          </p>
+          <p>
+            Штатный экипаж состоит строго из двух единиц:
+          </p>
+          <ul style="margin: 8px 0 12px 18px; font-size: 13px;">
+            <li><strong>Офицер-Гештальт (Радиоофицер / Пилот):</strong> отвечает за приём директив AEON, пеленгацию секторов и составление отчётов (на борту Penrose-512 — <em>Ариана Йонг</em>).</li>
+            <li><strong>Инженерная Реплика типа LSTR (Elster):</strong> отвечает за техническое обслуживание узлов корабля, навигацию и поддержание порядка (на борту Penrose-512 — <em>LSTR-512</em>).</li>
+          </ul>
+          <div class="quote-directive" style="font-size: 12px;">
+            «Офицеру-Гештальту настоятельно не рекомендуется вступать в неслужебную эмоциональную близость с приписанной единицей LSTR. Помните: Реплика — это государственное оборудование, а не товарищ».
+            <span class="source">— Памятка пилоту программы Penrose (Уровень допуска I+)</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            <span>ТЕХНИЧЕСКИЕ ХАРАКТЕРИСТИКИ И ЭТАПЫ ЭКСПЕДИЦИИ</span>
+            <span class="v-badge v-canon">CANON + RECON</span>
+          </div>
+          <table class="tech-table">
+            <thead>
+              <tr>
+                <th>ПАРАМЕТР</th>
+                <th>ЗНАЧЕНИЕ (ДОКУМЕНТАЦИЯ AEON)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Класс судна</strong></td>
+                <td>Дальний разведывательный корабль типа «Penrose» <span class="v-badge v-canon">CANON</span></td>
+              </tr>
+              <tr>
+                <td><strong>Способ запуска</strong></td>
+                <td>Электромагнитная орбитальная катапульта (Ротфронт) <span class="v-badge v-canon">CANON</span></td>
+              </tr>
+              <tr>
+                <td><strong>Штатный экипаж</strong></td>
+                <td>1 Офицер-Гештальт + 1 Реплика LSTR <span class="v-badge v-canon">CANON</span></td>
+              </tr>
+              <tr>
+                <td><strong>Расчётный ресурс (Фаза I–II)</strong></td>
+                <td>1500 — 3000 орбитальных циклов <span class="v-badge v-canon">CANON</span></td>
+              </tr>
+              <tr>
+                <td><strong>Вооружение / Посадочные двигатели</strong></td>
+                <td>Отсутствуют (предусмотрена только однократная посадка на целевой мир) <span class="v-badge v-canon">CANON</span></td>
+              </tr>
+              <tr>
+                <td><strong>Аварийное оборудование</strong></td>
+                <td>1 автономная криогенная капсула в медотсеке <span class="v-badge v-canon">CANON</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="panel-title" style="margin-top: 16px;">
+            <span>ОФИЦИАЛЬНЫЕ ФАЗЫ ЭКСПЕДИЦИИ PENROSE</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          <table class="tech-table" id="penrose-phases-table">
+            <thead>
+              <tr>
+                <th>ФАЗА</th>
+                <th>ЦИКЛЫ</th>
+                <th>РЕГЛАМЕНТ AEON</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>ФАЗА I</strong></td>
+                <td>0 — 1500</td>
+                <td>Разгон, пересечение внешних рубежей системы, проверка узлов и регулярные сеансы связи с Ротфронтом.</td>
+              </tr>
+              <tr>
+                <td><strong>ФАЗА II</strong></td>
+                <td>1500 — 3000</td>
+                <td>Глубокое сканирование облака Оорта в поисках планетоидов и ресурсов.</td>
+              </tr>
+              <tr id="phase-3-row">
+                <td><strong>ФАЗА III</strong></td>
+                <td>3000+</td>
+                <td id="phase-3-text">Резервный этап продолжения поиска. (Для просмотра полной директивы Фазы III требуется Уровень допуска III–IV).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION IV (NEW): ROTFRONT — REGIONAL ARCHIVE
+         ========================================== -->
+    <section id="sec-rotfront" class="section-view">
+      <div class="section-header">
+        <div>
+          <h2>ROTFRONT — РЕГИОНАЛЬНЫЙ ГОСУДАРСТВЕННЫЙ АРХИВ (СЕКТОР C)</h2>
+          <div class="doc-code">МОДУЛЬ ТЕРРИТОРИАЛЬНОГО УПРАВЛЕНИЯ И КОММУНАЛЬНОГО НАДЗОРА // ДОК. № RTF-SEC-C/84</div>
+        </div>
+        <div class="stamp cyan">REGIONAL ARCHIVE // ROTFRONT</div>
+      </div>
+
+      <!-- ROTFRONT SUB-NAVIGATION -->
+      <div class="subnav-bar">
+        <button class="btn-terminal active" onclick="switchRotfrontSub('rtf-overview', this)">4.1 ОБЩАЯ ИНФОРМАЦИЯ</button>
+        <button class="btn-terminal" onclick="switchRotfrontSub('rtf-locations', this)">4.2 ЛОКАЦИИ И ИНФРАСТРУКТУРА</button>
+        <button class="btn-terminal" onclick="switchRotfrontSub('rtf-society', this)">4.3 УЧРЕЖДЕНИЯ И НАСЕЛЕНИЕ</button>
+        <button class="btn-terminal" onclick="switchRotfrontSub('rtf-timeline', this)">4.4 АРХИВ СОБЫТИЙ (ХРОНОЛОГИЯ)</button>
+        <button class="btn-terminal" onclick="switchRotfrontSub('rtf-docs', this)">4.5 АРХИВНЫЕ ДОКУМЕНТЫ ROTFRONT</button>
+      </div>
+
+      <!-- 4.1 ROTFRONT OVERVIEW -->
+      <div id="rtf-overview" class="rtf-subview">
+        <div class="grid-2">
+          <div class="panel-paper">
+            <div class="panel-title">
+              <span>ОФИЦИАЛЬНАЯ СПРАВКА О РЕГИОНЕ ROTFRONT</span>
+              <span class="v-badge v-canon">CANON</span>
+            </div>
+            <p>
+              <strong>Ротфронт (Rotfront)</strong> — стратегический колониальный и научно-промышленный регион Нации Евзана, расположенный на обитаемом ледяном спутнике одноимённого газового гиганта (аналог системы Юпитера/Европы в Солнечной системе мира <em>SIGNALIS</em>).
+            </p>
+            <p>
+              Благодаря программе климатического терраформирования (с применением биорезонансных технологий) спутник превращён из безжизненной ледяной пустыни в опорный бастион социалистического строительства. Несмотря на суровый холодный климат и постоянные снегопады, на Ротфронте функционируют плотные городские жилые кварталы (включая <strong>Сектор C, Блок 6</strong>), разветвлённая сеть метрополитена/магнитоплана, политехнические учебные заведения, медицинские комплексы и главный <strong>орбитальный пусковой комплекс программы «Penrose»</strong>.
+            </p>
+            <div class="quote-directive">
+              «Укротив вечные льды Ротфронта, Нация Евзана доказала: нет такой стихии, которая устояла бы перед коллективным трудом и научным предвидением AEON».
+              <span class="source">— Официальный альманах регионального развития Ротфронта <span class="v-badge v-recon">ARCHIVE RECONSTRUCTION</span></span>
+            </div>
+          </div>
+
+          <div class="panel" id="rotfront-dynamic-context">
+            <!-- Populated dynamically based on Clearance 0-IV -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.2 ROTFRONT LOCATIONS -->
+      <div id="rtf-locations" class="rtf-subview" style="display: none;">
+        <div class="grid-3" id="rotfront-locations-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- 4.3 ROTFRONT INSTITUTIONS & POPULATION -->
+      <div id="rtf-society" class="rtf-subview" style="display: none;">
+        <div class="grid-2" id="rotfront-society-content">
+          <!-- Populated by JS based on Clearance -->
+        </div>
+      </div>
+
+      <!-- 4.4 ROTFRONT TIMELINE -->
+      <div id="rtf-timeline" class="rtf-subview" style="display: none;">
+        <div class="panel">
+          <div class="panel-title">
+            <span>ХРОНОЛОГИЯ ПОДТВЕРЖДЁННЫХ СОБЫТИЙ И ПРОИСШЕСТВИЙ (ROTFRONT)</span>
+            <span class="meta">ДОСТУП ЗАВИСИТ ОТ УРОВНЯ ДОПУСКА (0 — IV)</span>
+          </div>
+          <table class="tech-table">
+            <thead>
+              <tr>
+                <th style="width: 150px;">ПЕРИОД / ДАТА</th>
+                <th>СОБЫТИЕ И АРХИВНАЯ СВОДКА</th>
+                <th style="width: 140px;">ДОСТОВЕРНОСТЬ</th>
+                <th style="width: 110px;">ДОПУСК</th>
+              </tr>
+            </thead>
+            <tbody id="rotfront-timeline-body">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 4.5 ROTFRONT DOCUMENTS -->
+      <div id="rtf-docs" class="rtf-subview" style="display: none;">
+        <div class="panel">
+          <div class="panel-title">
+            <span>РЕГИОНАЛЬНЫЕ ДОКУМЕНТЫ, РАПОРТЫ БЛОКВАРТА И СЛУЖЕБНЫЕ СВОДКИ ROTFRONT</span>
+            <span class="meta">НАЖМИТЕ ДЛЯ ОТКРЫТИЯ ДОКУМЕНТА</span>
+          </div>
+          <div id="rotfront-docs-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION V (NEW): REPLIKA PERSONNEL DATABASE
+         ========================================== -->
+    <section id="sec-replika" class="section-view">
+      <div class="section-header">
+        <div>
+          <h2>REPLIKA PERSONNEL DATABASE — КАТАЛОГ БИОМЕХАНИЧЕСКИХ КАДРОВ AEON</h2>
+          <div class="doc-code">ТЕХНИЧЕСКИЕ ПАСПОРТА, ПСИХОЛОГИЧЕСКИЕ ПРОФИЛИ И ОЦЕНКА СТАБИЛЬНОСТИ ПЕРСОНЫ // ДОК. № RPL-DB-84/ALL</div>
+        </div>
+        <div class="stamp" id="replika-header-stamp">CLEARANCE LEVEL 0</div>
+      </div>
+
+      <div class="filter-bar">
+        <input
+          type="text"
+          id="replika-search"
+          class="input-terminal"
+          placeholder="Поиск модели по коду или названию (например: LSTR, Elster, STCR, Storch, FKLR, Falke, KLBR)..."
+          oninput="renderReplikas()"
+        />
+        <select id="replika-role-filter" class="input-terminal" style="flex: 0 0 270px;" onchange="renderReplikas()">
+          <option value="ALL">ВСЕ КАТЕГОРИИ НАЗНАЧЕНИЯ (10 МОДЕЛЕЙ)</option>
+          <option value="КОМАНДОВАНИЕ И АДМИНИСТРАЦИЯ">КОМАНДОВАНИЕ И АДМИНИСТРАЦИЯ (FKLR, ADLR, KLBR)</option>
+          <option value="ПРОТЕКТОРАТ И БЕЗОПАСНОСТЬ">ПРОТЕКТОРАТ И БЕЗОПАСНОСТЬ (STAR, STCR)</option>
+          <option value="ИНЖЕНЕРИЯ, КОСМОС И ПРОМЫШЛЕННОСТЬ">ИНЖЕНЕРИЯ, КОСМОС И ПРОМЫШЛЕННОСТЬ (LSTR, ARAR, MNHR)</option>
+          <option value="ГРАЖДАНСКОЕ И УНИВЕРСАЛЬНОЕ ОБСЛУЖИВАНИЕ">УНИВЕРСАЛЬНОЕ ОБСЛУЖИВАНИЕ (EULR, EULR-S)</option>
+        </select>
+        <div class="doc-counter-badge" id="replika-counter-badge">МОДЕЛЕЙ: 10 // ВКЛАДОК ОТКРЫТО: 1/4</div>
+      </div>
+
+      <div class="replika-grid" id="replika-cards-container">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION VI: АРХИВ ДОСТИЖЕНИЙ
+         ========================================== -->
+    <section id="sec-achievements" class="section-view">
+      <div class="section-header">
+        <div>
+          <h2>ГОСУДАРСТВЕННЫЙ АРХИВ ДОСТИЖЕНИЙ НАЦИИ ЕВЗАНА</h2>
+          <div class="doc-code">РЕЕСТР ЗАРЕГИСТРИРОВАННЫХ НАУЧНО-ПРОМЫШЛЕННЫХ ДОКУМЕНТОВ // ДОК. № ARC-REG-84</div>
+        </div>
+        <div class="stamp">VERIFIED ARCHIVE</div>
+      </div>
+
+      <div class="filter-bar">
+        <input
+          type="text"
+          id="archive-search"
+          class="input-terminal"
+          placeholder="Поиск по названию достижения, коду или описанию..."
+          oninput="renderAchievements()"
+        />
+        <select id="archive-category" class="input-terminal" style="flex: 0 0 260px;" onchange="renderAchievements()">
+          <option value="ALL">ВСЕ КАТЕГОРИИ АРХИВА</option>
+          <option value="ПРОМЫШЛЕННОСТЬ">ПРОМЫШЛЕННОСТЬ</option>
+          <option value="КОСМИЧЕСКИЕ ИССЛЕДОВАНИЯ">КОСМИЧЕСКИЕ ИССЛЕДОВАНИЯ</option>
+          <option value="ИНЖЕНЕРИЯ">ИНЖЕНЕРИЯ</option>
+          <option value="ОБРАЗОВАНИЕ">ОБРАЗОВАНИЕ</option>
+          <option value="МЕДИЦИНСКИЕ ТЕХНОЛОГИИ">МЕДИЦИНСКИЕ ТЕХНОЛОГИИ</option>
+          <option value="АВТОМАТИЗАЦИЯ И РОБОТОТЕХНИКА">АВТОМАТИЗАЦИЯ И РОБОТОТЕХНИКА</option>
+        </select>
+      </div>
+
+      <div class="grid-3" id="achievements-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION VII: ОФИЦИАЛЬНЫЕ ДИРЕКТИВЫ
+         ========================================== -->
+    <section id="sec-directives" class="section-view">
+      <div class="section-header">
+        <div>
+          <h2>СВОД ОФИЦИАЛЬНЫХ ДИРЕКТИВ, РАСПОРЯЖЕНИЙ И ПРОТОКОЛОВ AEON</h2>
+          <div class="doc-code">НАЖМИТЕ НА ЗАПИСЬ В РЕЕСТРЕ ДЛЯ ОТКРЫТИЯ ПОЛНОГО ТЕКСТА ДОКУМЕНТА</div>
+        </div>
+        <div class="stamp">DIRECTIVE REGISTRY</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <span>РЕЕСТР ДЕЙСТВУЮЩИХ ГОСУДАРСТВЕННЫХ ДОКУМЕНТОВ</span>
+          <span class="meta" id="directives-clearance-hint">ОТОБРАЖЕНИЕ СООТВЕТСТВУЕТ УРОВНЮ ДОПУСКА</span>
+        </div>
+        <div id="directives-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION VIII: АРХИВНЫЕ СООБЩЕНИЯ И ЖУРНАЛ СЕАНСА
+         ========================================== -->
+    <section id="sec-logs" class="section-view">
+      <div class="section-header">
+        <div>
+          <h2>ТЕРМИНАЛЬНЫЙ ЖУРНАЛ СИСТЕМНЫХ И АРХИВНЫХ СООБЩЕНИЙ</h2>
+          <div class="doc-code">МОНИТОРИНГ ЦЕЛОСТНОСТИ АРХИВОВ, СИГНАЛА PENROSE И ИСТОРИИ ДОСТУПА ТЕКУЩЕГО СЕАНСА</div>
+        </div>
+        <div class="stamp amber">SYSTEM MONITOR</div>
+      </div>
+
+      <div class="grid-sidebar">
+        <div class="panel">
+          <div class="panel-title">
+            <span>ПОТОК ТЕЛЕМЕТРИИ И АРХИВНЫХ УВЕДОМЛЕНИЙ [LIVE LOG]</span>
+            <div>
+              <button class="btn-terminal" onclick="triggerIntegrityScan()">[ ПРОВЕРИТЬ ЦЕЛОСТНОСТЬ АРХИВА ]</button>
+              <button class="btn-terminal" onclick="replayTerminalLogs()">[ ОБНОВИТЬ ПОТОК ]</button>
+            </div>
+          </div>
+          <div class="terminal-console" id="terminal-log-box"></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="panel-paper">
+            <div class="panel-title">
+              <span>ЖУРНАЛ ПРОСМОТРА ДОКУМЕНТОВ (ТЕКУЩИЙ СЕАНС)</span>
+              <span class="meta">SESSION AUDIT</span>
+            </div>
+            <div id="session-history-box" style="font-size: 11px; max-height: 190px; overflow-y: auto; background: #0b0b0e; border: 1px solid var(--border-main); padding: 8px;">
+              <div style="color: var(--text-muted);">[СЕАНС ИНИЦИИРОВАН] Документы и досье ещё не открывались пользователем.</div>
+            </div>
+          </div>
+
+          <div class="panel-paper">
+            <div class="panel-title">
+              <span>СВОДКА ДИАГНОСТИКИ УЗЛА</span>
+              <span class="meta">СТАТУС ПАМЯТИ</span>
+            </div>
+            <table class="tech-table">
+              <tbody>
+                <tr>
+                  <td>Целостность публичных блоков</td>
+                  <td style="color: var(--accent-amber);">99.8% [VERIFIED]</td>
+                </tr>
+                <tr>
+                  <td>Сектор архива ROTFRONT-C</td>
+                  <td style="color: var(--accent-red);">ЧАСТИЧНОЕ ИСКАЖЕНИЕ</td>
+                </tr>
+                <tr>
+                  <td>Ретранслятор PENROSE-512</td>
+                  <td style="color: var(--accent-red);" id="log-table-penrose">СИГНАЛ НЕСТАБИЛЕН</td>
+                </tr>
+                <tr>
+                  <td>Биорезонансный фон</td>
+                  <td>ПРЕВЫШЕНИЕ В СЕКТОРЕ S-23</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- UNIVERSAL MODAL FOR DIRECTIVES, ROTFRONT DOCS & REPLIKA DOSSIERS -->
+  <div class="modal-backdrop" id="doc-modal" onclick="closeModalOnBackdrop(event)">
+    <div class="modal-window" id="modal-content-box">
+      <!-- Populated dynamically by JS -->
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div>AEON CENTRAL INFORMATION NETWORK // ГОСУДАРСТВЕННАЯ ИНТРАСЕТЬ НАЦИИ ЕВЗАНА (ВСЕЛЕННАЯ SIGNALIS)</div>
+      <div>САМОСТОЯТЕЛЬНАЯ УЧЕБНАЯ РАБОТА (СРО) // HTML5 / CSS3 / VANILLA JS // ОФЛАЙН-ВЕРСИЯ 4.2</div>
+    </div>
+  </footer>
+
+  <!-- ==========================================
+       JAVASCRIPT LOGIC & EXPANDED DATABASES
+       ========================================== -->
+  <script>
+    // 1. GLOBAL STATE
+    let currentClearance = 0; // 0: PUBLIC, 1: AUTHORIZED, 2: TECHNICAL, 3: COMMAND/MED, 4: EYES ONLY
+    let currentPenroseStatus = 'IN TRANSIT';
+    let activeReplikaId = null;
+    let activeReplikaTab = 'tab-official';
+    let sessionAuditHistory = [];
+
+    const clearanceMeta = {
+      0: {
+        name: 'УР. 0 // PUBLIC INFORMATION',
+        short: 'LEVEL 0 (PUBLIC)',
+        color: '#e6dec8',
+        desc: '<strong>ТЕКУЩИЙ РЕЖИМ [УРОВЕНЬ 0 — PUBLIC INFORMATION]:</strong> Открытая государственная информация: официальная история Нации, публичные сводки о ROTFRONT, базовые описания типов Реплик и открытые достижения.'
+      },
+      1: {
+        name: 'УР. I // AUTHORIZED PERSONNEL',
+        short: 'LEVEL I (AUTHORIZED)',
+        color: '#7ab3ef',
+        desc: '<strong>ТЕКУЩИЙ РЕЖИМ [УРОВЕНЬ I — AUTHORIZED PERSONNEL]:</strong> Служебный доступ: открыты подробные обязанности Реплик, места службы, взаимодействие подразделений и стандартные регламенты.'
+      },
+      2: {
+        name: 'УР. II // TECHNICAL PERSONNEL',
+        short: 'LEVEL II (TECHNICAL)',
+        color: '#d99b26',
+        desc: '<strong>ТЕКУЩИЙ РЕЖИМ [УРОВЕНЬ II — TECHNICAL PERSONNEL]:</strong> Технический доступ: разблокирована вкладка «Техническая документация» в досье Реплик, эксплуатационные ограничения, особенности конструкции и технические рапорты ROTFRONT.'
+      },
+      3: {
+        name: 'УР. III // COMMAND / MEDICAL',
+        short: 'LEVEL III (COMMAND/MED)',
+        color: '#ff9248',
+        desc: '<strong>ТЕКУЩИЙ РЕЖИМ [УРОВЕНЬ III — COMMAND / MEDICAL]:</strong> Командно-медицинский доступ: разблокированы «Психологические профили», блоки PERSONA STABILITY ASSESSMENT, факторы деградации личности и внутренние отчёты об инцидентах.'
+      },
+      4: {
+        name: 'УР. IV // EYES ONLY / CENTRAL ARCHIVE',
+        short: 'LEVEL IV (EYES ONLY)',
+        color: '#ff3b30',
+        desc: '<strong>ТЕКУЩИЙ РЕЖИМ [УРОВЕНЬ IV — EYES ONLY / CENTRAL ARCHIVE]:</strong> Высший уровень доступа: снята цензура с секретных строк, открыты вкладки «Засекреченное досье», Директива Фазы III Penrose и противоречия между государственной пропагандой и закрытыми архивами.'
+      }
+    };
+
+    function recordSessionAction(actionText) {
+      const now = new Date();
+      const timeStr =
+        String(now.getHours()).padStart(2, '0') + ':' +
+        String(now.getMinutes()).padStart(2, '0') + ':' +
+        String(now.getSeconds()).padStart(2, '0');
+      sessionAuditHistory.unshift(`[${timeStr} | УР.${currentClearance}] ${actionText}`);
+      document.getElementById('session-views-count').textContent = sessionAuditHistory.length;
+      const box = document.getElementById('session-history-box');
+      if (box) {
+        box.innerHTML = sessionAuditHistory
+          .slice(0, 25)
+          .map(item => `<div style="padding: 3px 0; border-bottom: 1px dotted #25252e;">${item}</div>`)
+          .join('');
+      }
+    }
+
+    // 2. BOOT SEQUENCE
+    const bootLines = [
+      "AEON ROM BIOS V4.88-EUS // НАЦИЯ ЕВЗАНА",
+      "ПРОВЕРКА ОПЕРАТИВНОЙ ПАМЯТИ ТЕРМИНАЛА... 640 КБ [OK]",
+      "ИНИЦИАЛИЗАЦИЯ КАНАЛА ИНТРАСЕТИ ХАЙМАТ — РОТФРОНТ — ЛЕНГ (S-23)...",
+      "ПОДКЛЮЧЕНИЕ МОДУЛЯ РЕГИОНАЛЬНОГО АРХИВА: ROTFRONT SECTOR C... [MOUNTED]",
+      "ЗАГРУЗКА КАТАЛОГА БИОМЕХАНИЧЕСКИХ КАДРОВ (REPLIKA PERSONNEL DB: 10 ДОСЬЕ)... [OK]",
+      "ПРОВЕРКА 5-УРОВНЕВОЙ МАТРИЦЫ ДОПУСКА (LEVEL 0 — LEVEL IV)... АКТИВНО",
+      "[WARNING] ОБНАРУЖЕНО НЕСОВПАДЕНИЕ МЕЖДУ ПУБЛИЧНЫМИ БЮЛЛЕТЕНЯМИ И СЕКТОРОМ EYES ONLY",
+      "ЗАПУСК ГРАФИЧЕСКОЙ ОБОЛОЧКИ AEON CENTRAL INFORMATION NETWORK..."
+    ];
+
+    let bootTimeouts = [];
+
+    function runBootSequence() {
+      const logBox = document.getElementById('boot-log');
+      logBox.innerHTML = '';
+      const fill0 = document.getElementById('boot-progress-fill');
+      if (fill0) fill0.style.width = '0%';
+      bootTimeouts.forEach(t => clearTimeout(t));
+      bootTimeouts = [];
+
+      bootLines.forEach((line, idx) => {
+        const t = setTimeout(() => {
+          const div = document.createElement('div');
+          div.className = 'boot-line';
+          if (line.includes('[WARNING]')) div.style.color = '#ff3b30';
+          div.textContent = `> ${line}`;
+          logBox.appendChild(div);
+          const fill = document.getElementById('boot-progress-fill');
+          if (fill) fill.style.width = Math.round(((idx + 1) / bootLines.length) * 100) + '%';
+        }, idx * 180);
+        bootTimeouts.push(t);
+      });
+
+      const endT = setTimeout(() => {
+        finishBoot();
+      }, bootLines.length * 180 + 500);
+      bootTimeouts.push(endT);
+    }
+
+    function finishBoot() {
+      bootTimeouts.forEach(t => clearTimeout(t));
+      document.getElementById('boot-screen').classList.add('hidden');
+    }
+
+    function replayBoot() {
+      document.getElementById('boot-screen').classList.remove('hidden');
+      runBootSequence();
+    }
+
+    // 3. SYSTEM CLOCK
+    function updateClock() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('system-clock').textContent = `ЦИКЛ 84.10.27 // ${hh}:${mm}:${ss}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 4. NAVIGATION TABS
+    function switchTab(sectionId, btnEl) {
+      document.querySelectorAll('.section-view').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      btnEl.classList.add('active');
+      recordSessionAction(`Переход в раздел: ${btnEl.querySelector('.tab-name').textContent}`);
+    }
+
+    function switchRotfrontSub(subId, btnEl) {
+      document.querySelectorAll('.rtf-subview').forEach(el => el.style.display = 'none');
+      document.getElementById(subId).style.display = 'block';
+      btnEl.parentElement.querySelectorAll('.btn-terminal').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+      recordSessionAction(`Просмотр подраздела ROTFRONT: ${btnEl.textContent}`);
+    }
+
+    // 5. CRT VISUAL FILTER TOGGLE
+    function toggleCRT() {
+      document.body.classList.toggle('crt-disabled');
+      const btn = document.getElementById('btn-crt-toggle');
+      const isOff = document.body.classList.contains('crt-disabled');
+      btn.textContent = isOff ? '[ ЭЛТ-ПОМЕХИ: ВЫКЛ ]' : '[ ЭЛТ-ПОМЕХИ: ВКЛ ]';
+      btn.classList.toggle('amber-active', !isOff);
+    }
+
+    // 6. PENROSE SHIP MODULES & STATUS
+    const shipModules = [
+      {
+        title: "01. НОСОВАЯ РУБКА УПРАВЛЕНИЯ И НАВИГАЦИИ",
+        desc: "Рабочий пост пилота-Гештальта и навигационной консоли LSTR. Оснащён оптическими визорами и астрономическими таблицами для контроля курса.",
+        stamp: "СИСТЕМА В НОРМЕ"
+      },
+      {
+        title: "02. РАДИОРУБКА ДАЛЬНЕЙ СВЯЗИ",
+        desc: "Приёмопередатчик сверхдлинных волн для получения директив с Ротфронта и пеленгации. В глубоком космосе сигнал затухает и подвержен паразитным биорезонансным шумам (номерные станции «Три ноты»).",
+        stamp: "СИГНАЛ ЗАТУХАЕТ"
+      },
+      {
+        title: "03. ЖИЛАЯ КАЮТА ОФИЦЕРА-ГЕШТАЛЬТА И МЕДБЛОК (КРИОКАПСУЛА)",
+        desc: "Содержит спальное место офицера, художественные принадлежности Арианы Йонг и единственную аварийную криогенную капсулу в медицинском отсеке.",
+        stamp: "КРИОКАПСУЛА АКТИВНА"
+      },
+      {
+        title: "04. ИНЖЕНЕРНЫЙ ОТСЕК И КАЛИБРОВОЧНАЯ КАПСУЛА LSTR",
+        desc: "Сектор технического обслуживания и сна Реплики LSTR-512. Включает ремонтную мастерскую и модуль стабилизации нейронного паттерна.",
+        stamp: "КАЛИБРОВКА LSTR"
+      },
+      {
+        title: "05. РЕАКТОРНЫЙ ОТСЕК И СИСТЕМА ЖИЗНЕОБЕСПЕЧЕНИЯ",
+        desc: "Обеспечивает автономное питание судна на протяжении Фаз I–II (до 3000 циклов). После 3000-го цикла происходит деградация контура охлаждения и рост радиационного фона.",
+        stamp: "ТРЕБУЕТСЯ КОНТРОЛЬ"
+      },
+      {
+        title: "06. КОРМОВЫЕ МАРШЕВЫЕ ДЮЗЫ",
+        desc: "Придают корректирующий импульс после разгона на электромагнитной катапульте Ротфронта. Не предназначены для возвращения корабля назад.",
+        stamp: "РЕСУРС ИСЧЕРПАН"
+      }
+    ];
+
+    function inspectShipModule(index) {
+      const m = shipModules[index];
+      document.getElementById('mod-title').textContent = `ВЫБРАН УЗЕЛ: ${m.title}`;
+      document.getElementById('mod-desc').textContent = m.desc;
+      document.getElementById('mod-stamp').textContent = m.stamp;
+      recordSessionAction(`Инспекция узла Penrose: ${m.title}`);
+    }
+
+    function setPenroseStatus(status, btnEl) {
+      currentPenroseStatus = status;
+      if (btnEl) {
+        btnEl.parentElement.querySelectorAll('.btn-terminal').forEach(b => b.classList.remove('active'));
+        btnEl.classList.add('active');
+      }
+
+      const stamp = document.getElementById('penrose-header-stamp');
+      const svgLabel = document.getElementById('svg-status-label');
+      const logCell = document.getElementById('log-table-penrose');
+
+      stamp.textContent = `MISSION STATUS: ${status}`;
+
+      if (status === 'PREPARATION') {
+        svgLabel.textContent = 'TELEMETRY: ORBITAL RAIL PRE-LAUNCH (ROTFRONT)';
+        svgLabel.setAttribute('fill', '#d99b26');
+        logCell.textContent = 'ПРЕДПУСКОВАЯ ГОТОВНОСТЬ';
+      } else if (status === 'IN TRANSIT') {
+        svgLabel.textContent = 'TELEMETRY: ACTIVE // DEEP SPACE';
+        svgLabel.setAttribute('fill', '#e6dec8');
+        logCell.textContent = 'В ПОЛЁТЕ (ФАЗА II)';
+      } else if (status === 'SIGNAL LOST') {
+        svgLabel.textContent = 'WARNING: CARRIER SIGNAL LOST (CYCLE 3000+)';
+        svgLabel.setAttribute('fill', '#ff3b30');
+        logCell.textContent = 'СИГНАЛ ПОТЕРЯН (БОРТ 512)';
+      } else if (status === 'ARCHIVE ONLY') {
+        svgLabel.textContent = 'STATUS: DECOMMISSIONED // ARCHIVE RECORD';
+        svgLabel.setAttribute('fill', '#948e7e');
+        logCell.textContent = 'СПИСАНО В АРХИВ';
+      }
+    }
+
+    // ==========================================
+    // 7. ROTFRONT REGIONAL ARCHIVE DATA
+    // ==========================================
+    const rotfrontLocationsData = [
+      {
+        id: "RTF-LOC-01",
+        name: "Жилой комплекс Сектора C (Блок 6 // Blockwart)",
+        purpose: "Коммунальное проживание гражданских специалистов и пост домового надзора",
+        units: "Инспектор KLBR (Блокварт), секретарь EULR, жители Блока 6",
+        docs: "Предписание о комендантском часе, журнал обысков квартир, доносы жильцов",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        publicDesc: "Образцовый многоквартирный жилой комплекс Сектора C, обеспечивающий работников Ротфронта тёплым жильём, централизованным радиовещанием и коммунальной инфраструктурой.",
+        restrictedMinLevel: 1,
+        restrictedDesc: "Квартиры находятся под круглосуточным контролем Блокварта (единицы KLBR). На верхних этажах размещён кабинет домового смотрителя с картотекой благонадёжности жильцов и средствами перлюстрации корреспонденции.",
+        eyesOnlyDesc: "В ходе событий 3-го акта игры жилой комплекс оказывается поражён биорезонансной/мясной субстанцией, а коридоры и квартиры воспроизводят фрагменты памяти Арианы Йонг и LSTR."
+      },
+      {
+        id: "RTF-LOC-02",
+        name: "Книжный магазин семьи Итоу («Itou Bookstore»)",
+        purpose: "Розничная точка распределения разрешённой печатной продукции в Секторе C",
+        units: "Семья Итоу (Эрика Итоу, Иза Итоу), частая посетительница — Ариана Йонг",
+        docs: "Реестр изъятых книг, квитанции магазина, личные фотографии",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        publicDesc: "Локальный пункт книготорговли Сектора C, снабжающий граждан техническими справочниками и утверждёнными учебными пособиями.",
+        restrictedMinLevel: 2,
+        restrictedDesc: "Магазин находился под особым подозрением Блокварта из-за хранения дореволюционных и художественных изданий (включая «Короля в жёлтом»), не входящих в одобренный перечень AEON.",
+        eyesOnlyDesc: "В основном зале магазина в финале игры расположен мемориальный алтарь с фотографиями близнецов Итоу, что указывает на их гибель или исчезновение задолго до текущих событий."
+      },
+      {
+        id: "RTF-LOC-03",
+        name: "Политехническая средняя школа им. Мандельброта",
+        purpose: "Среднее техническое и идеологическое образование молодёжи Ротфронта",
+        units: "Учащиеся (Ариана Йонг, Эрика и Иза Итоу), преподавательский состав и надзорные кадры",
+        docs: "Табели успеваемости, медицинские карты осмотров, характеристика Арианы Йонг",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        publicDesc: "Передовое учебное заведение (Mandelbrot Polytechnische Oberschule), готовящее будущих радистов, инженеров и операторов для космического флота и промышленности.",
+        restrictedMinLevel: 1,
+        restrictedDesc: "В школе поддерживалась жёсткая нетерпимость к любому инакомыслию и увлечению искусством. Ариана Йонг подвергалась травле со стороны одноклассников из-за воспитания на уединённой радиостанции и любви к живописи; единственными, кто заступался за неё, были сёстры Итоу.",
+        eyesOnlyDesc: "Именно стремление вырваться из удушающей атмосферы школы и надзора на Ротфронте побудило Ариану подать заявку в одностороннюю космическую программу «Penrose»."
+      },
+      {
+        id: "RTF-LOC-04",
+        name: "Фотомагазин Сектора C (Photo Store)",
+        purpose: "Изготовление удостоверений личности, проявка плёнки и учёт оптики",
+        units: "Мать Арианы (Айрис Йонг — поддерживала связь через магазин), гражданский персонал",
+        docs: "Квитанции на фотобумагу, проявленные снимки Арианы и сестёр Итоу",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        publicDesc: "Сервисный пункт документирования граждан и обслуживания оптической аппаратуры Сектора C.",
+        restrictedMinLevel: 1,
+        restrictedDesc: "Через фотомагазин Ариана Йонг приобрела фотоаппарат и художественные принадлежности перед отправкой на службу, запечатлев последние дни на Ротфронте.",
+        eyesOnlyDesc: "Снимки из фотомагазина служат одним из ключевых триггеров восстановления подавленной памяти LSTR-512."
+      },
+      {
+        id: "RTF-LOC-05",
+        name: "Медицинский блок / Госпиталь Ротфронта",
+        purpose: "Стационарное обследование граждан и биомеханических единиц Сектора C",
+        units: "Медицинские единицы EULR, врачебный персонал сектора",
+        docs: "Рентгеновские снимки, больничные листы, журналы стоматологического и общего осмотра",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        publicDesc: "Клиническое отделение сектора, обеспечивающее плановую диспансеризацию и поддержание трудоспособности населения.",
+        restrictedMinLevel: 3,
+        restrictedDesc: "В архивах медотдела зафиксированы данные предполётного обследования Арианы Йонг и симптомы лучевого поражения, которые впоследствии переплетаются с воспоминаниями о лазарете Penrose-512.",
+        eyesOnlyDesc: "Интерьер госпиталя Ротфронта в 3-м акте напрямую накладывается на образы медблока корабля Penrose-512 и болезни Арианы."
+      },
+      {
+        id: "RTF-LOC-06",
+        name: "Станция метрополитена / Магнитоплан Сектора C",
+        purpose: "Транспортное сообщение между жилыми блоками, космопортом и пусковым кольцом",
+        units: "Дежурные Протектората (STAR/STCR), техническая служба ARAR",
+        docs: "Расписание движения составов, схема веток сектора",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        publicDesc: "Скоростная транспортная артерия, связывающая жилые массивы Ротфронта с промышленными доками и орбитальным комплексом.",
+        restrictedMinLevel: 2,
+        restrictedDesc: "В период карантина и чрезвычайных проверок переходы станции блокируются автоматическими гермозатворами Протектората.",
+        eyesOnlyDesc: "На платформе метрополитена разворачиваются ключевые сцены воспоминаний и переходов между слоями реальности (Ленг — Ротфронт — Пенроуз)."
+      }
+    ];
+
+    const rotfrontTimelineData = [
+      {
+        period: "РАНИЙ ЭТАП ОСВОЕНИЯ",
+        text: "Запуск программы климатического терраформирования ледяного спутника газового гиганта Ротфронт с применением биорезонансных генераторов и строительство орбитального пускового кольца.",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        minLevel: 0
+      },
+      {
+        period: "ДОЭКСПЕДИЦИОННЫЙ ПЕРИОД",
+        text: "Переезд Арианы Йонг с уединённой горной радиостанции её матери Айрис в жилой Сектор C Ротфронта для обучения в Политехнической школе им. Мандельброта. Знакомство с Эрикой и Изой Итоу.",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        minLevel: 1
+      },
+      {
+        period: "ПЕРИОД ПРИЗЫВА",
+        text: "Распределение выпускников: зачисление Арианы Йонг в радиотехническую службу ввиду навыков работы с шифрами и радиостанциями, а затем утверждение её кандидатуры в качестве пилота-радиоофицера миссии Penrose-512.",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        minLevel: 1
+      },
+      {
+        period: "ЗАПУСК PENROSE-512",
+        text: "Старт разведывательного корабля Penrose-512 (экипаж: Ариана Йонг и LSTR-512) с рельсовой катапульты Ротфронта за пределы Солнечной системы.",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        minLevel: 0
+      },
+      {
+        period: "УСИЛЕНИЕ НАДЗОРА В БЛОКЕ 6",
+        text: "Серия обысков Блокварта (KLBR) в Секторе C: расследование предполагаемой «шпионской радиосети», изъятие запрещённых книг и допросы жильцов.",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        minLevel: 2
+      },
+      {
+        period: "ДАТА НЕ ОПРЕДЕЛЕНА [АКТ III]",
+        text: "Пространственно-биорезонансное наложение Сектора C Ротфронта на комплекс S-23 «Серпински» и борт Penrose-512. Точная граница между физической реальностью Ротфронта и биорезонансным сном/проекцией памяти Арианы Йонг документально не установлена.",
+        badge: "INTERPRETATION",
+        badgeClass: "v-interp",
+        minLevel: 4
+      }
+    ];
+
+    const rotfrontDocsData = [
+      {
+        id: "RTF-DOC-101",
+        title: "Официальный отчёт о коммунальном благоустройстве Сектора C",
+        date: "84.04.12",
+        author: "Исполнительный комитет Ротфронта // Отдел пропаганды",
+        minLevel: 0,
+        stamp: "PUBLIC RECORD",
+        badge: "ARCHIVE RECONSTRUCTION",
+        badgeClass: "v-recon",
+        body: `
+          <p>Жилой массив Сектора C продолжает удерживать звание образцового района спутника Ротфронт. Несмотря на низкие внешние температуры, системы центрального отопления и снабжения работают в штатном режиме.</p>
+          <p>Граждане Блока 6 демонстрируют высокую сознательность, своевременно сдавая макулатуру и сообщая домовому комитету о любых бытовых неполадках.</p>
+        `
+      },
+      {
+        id: "RTF-DOC-108",
+        title: "Предписание Блокварта о проверке личных радиоприёмников и книг",
+        date: "84.07.19",
+        author: "Инспекция Блокварта Блока 6 (Единица KLBR)",
+        minLevel: 1,
+        stamp: "AUTHORIZED PERSONNEL",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        body: `
+          <p>В связи с зафиксированными случаями несанкционированного прослушивания коротковолновых передач в ночное время всем жильцам Блока 6 предписано предоставить личные радиоприёмники для опломбирования частотного диапазона.</p>
+          <p>Особое внимание обратить на книжную лавку семьи Итоу. Хранение художественной и мифологической литературы без штампа цензуры AEON приравнивается к идеологической диверсии.</p>
+        `
+      },
+      {
+        id: "RTF-DOC-204",
+        title: "Техническая сводка о состоянии отопительных и вентиляционных шахт Блока 6",
+        date: "84.08.30",
+        author: "Инженерно-эксплуатационная служба ARAR Сектора C",
+        minLevel: 2,
+        stamp: "TECHNICAL ONLY",
+        badge: "ARCHIVE RECONSTRUCTION",
+        badgeClass: "v-recon",
+        body: `
+          <p>Плановый осмотр сервисных коллекторов Блока 6 выявил несанкционированные ответвления в межстенном пространстве, оборудованные самими единицами ARAR для уединённого пребывания.</p>
+          <p>Кроме того, в подвальных уровнях под мясной лавкой и станцией метро зафиксировано аномальное обмерзание труб и отказ автоматических датчиков давления.</p>
+        `
+      },
+      {
+        id: "RTF-DOC-311",
+        title: "Школьная характеристика и медицинская выписка: Йонг, Ариана (Школа им. Мандельброта)",
+        date: "АРХИВНАЯ ЗАПИСЬ",
+        author: "Учебный совет Политехнической школы им. Мандельброта",
+        minLevel: 3,
+        stamp: "COMMAND / MEDICAL",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        body: `
+          <p><strong>Учащаяся:</strong> Йонг, Ариана (Yeong, Ariane). Поступила в школу после проживания на удалённой радиорелейной станции с матерью (Айрис Йонг).</p>
+          <p><strong>Поведенческая оценка:</strong> Проявляет замкнутость, недостаточную интеграцию в ученический коллектив и нежелательную склонность к изобразительному искусству и фотографии. Вместе с тем демонстрирует высокие навыки обращения с радиоаппаратурой и шифровальными таблицами.</p>
+          <p><strong>Рекомендация приёмной комиссии:</strong> Одобрить перевод в программу дальней разведки «Penrose» (борт Penrose-512), где условия изоляции не окажут негативного влияния на выполнение служебных задач.</p>
+        `
+      },
+      {
+        id: "RTF-DOC-409",
+        title: "ЗАКРЫТЫЙ РАПОРТ: Противоречия в записях Сектора C и феномен синхронизации памяти",
+        date: "84.10.26",
+        author: "Центральный Архив AEON // Особый отдел биорезонансного контроля",
+        minLevel: 4,
+        stamp: "EYES ONLY // LEVEL IV",
+        badge: "INTERPRETATION",
+        badgeClass: "v-interp",
+        body: `
+          <p><strong>[СОВЕРШЕННО СЕКРЕТНО — ТОЛЬКО ДЛЯ ВЫСШЕГО КОМАНДОВАНИЯ]:</strong> Сопоставление архивных реестров Сектора C Ротфронта с телеметрией объекта S-23 «Серпински» показывает невозможные хронологические и пространственные наложения.</p>
+          <p>Установлено, что архитектура Блока 6, книжного магазина Итоу, школы Мандельброта и больничного крыла воспроизводится с точностью до личных вещей и фотографий, известных только бывшей жительнице сектора <strong>Ариане Йонг</strong> (борт Penrose-512).</p>
+          <p class="quote-directive">Вывод аналитической группы: наблюдаемый в 3-м акте «Сектор C Ротфронта» представляет собой либо биорезонансную реконструкцию воспоминаний умирающего в криокапсуле Гештальта-офицера, наложенную на реальность, либо результат катастрофического резонанса между Penrose-512 и объектом S-23.</p>
+        `
+      }
+    ];
+
+    function renderRotfront() {
+      // 1. Dynamic context box in 4.1
+      const ctxBox = document.getElementById('rotfront-dynamic-context');
+      if (currentClearance === 0) {
+        ctxBox.innerHTML = `
+          <div class="panel-title">
+            <span>СТАТУС СЕКТОРА C (ПУБЛИЧНАЯ СВОДКА)</span>
+            <span class="v-badge v-recon">ARCHIVE RECONSTRUCTION</span>
+          </div>
+          <p>Транспортные узлы, образовательные учреждения и жилые блоки Ротфронта функционируют в строгом соответствии с директивами AEON. Социальная стабильность оценивается как образцовая.</p>
+          <div class="locked-notice-box">
+            [ДЛЯ ПРОСМОТРА ОПЕРАТИВНЫХ СВОДОК БЛОКВАРТА, ХАРАКТЕРИСТИК ПЕРСОНАЖЕЙ И ЗАКРЫТЫХ ОТЧЁТОВ О СЮЖЕТНЫХ АНОМАЛИЯХ ПОВЫСЬТЕ УРОВЕНЬ ДОПУСКА ДО I — IV]
+          </div>
+        `;
+      } else if (currentClearance <= 2) {
+        ctxBox.innerHTML = `
+          <div class="panel-title">
+            <span>ВНУТРЕННЯЯ СВОДКА СЛУЖБЫ НАДЗОРА (УРОВЕНЬ I–II)</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          <p>Сектор C Ротфронта находится под усиленным контролем домовых смотрителей (<strong>Blockwart</strong>, единицы KLBR). Повседневная жизнь граждан регламентирована по часам: действует строгий учёт печатной продукции, радиочастот и личных связей.</p>
+          <p>Именно здесь до отправки в космос проживала и училась радиоофицер миссии Penrose-512 <strong>Ариана Йонг</strong>, а также находился книжный магазин семьи <strong>Итоу</strong>.</p>
+          <div class="locked-notice-box">
+            [МЕДИЦИНСКИЕ И СЮЖЕТНЫЕ АРХИВЫ АКТОВ III–IV ТРЕБУЮТ УРОВНЯ ДОПУСКА III ИЛИ IV]
+          </div>
+        `;
+      } else {
+        ctxBox.innerHTML = `
+          <div class="panel-title">
+            <span>ЗАКРЫТАЯ АНАЛИТИКА СЕКТОРА C (УРОВЕНЬ III–IV)</span>
+            <span class="v-badge v-interp">CANON + INTERPRETATION</span>
+          </div>
+          <p>За парадным фасадом государственных отчётов Сектор C Ротфронта раскрывается как пространство тотальной слежки, взаимных доносов и подавления личности, откуда Ариана Йонг бежала в добровольное изгнание на борту <em>Penrose-512</em>.</p>
+          ${currentClearance === 4 ? `
+            <div class="persona-assessment-box">
+              <strong style="color: var(--accent-red-bright);">[EYES ONLY — ПРИРОДА РОТФРОНТА В ФИНАЛЕ SIGNALIS]:</strong>
+              В третьем акте игры LSTR-512 перемещается по Сектору C Ротфронта, который постепенно заполняется биомассой, снегом и пеплом. Согласно <span class="v-badge v-canon">CANON</span> и <span class="v-badge v-interp">INTERPRETATION</span>, эта версия Ротфронта сплетена из личных воспоминаний Арианы Йонг (школа, книжная лавка Итоу, фотомагазин, больница), искажённых её мощным биорезонансным полем на пороге смерти.
+            </div>
+          ` : ''}
+        `;
+      }
+
+      // 2. Locations Grid (4.2)
+      const locGrid = document.getElementById('rotfront-locations-grid');
+      locGrid.innerHTML = rotfrontLocationsData.map(loc => {
+        const canSeeRestricted = currentClearance >= loc.restrictedMinLevel;
+        const canSeeEyesOnly = currentClearance >= 4;
+        return `
+          <div class="archive-card ${canSeeEyesOnly ? 'classified-card' : ''}">
+            <div>
+              <div class="card-top-meta">
+                <span>${loc.id}</span>
+                <span class="v-badge ${loc.badgeClass}">${loc.badge}</span>
+              </div>
+              <div style="font-size: 14px; font-weight: bold; margin: 6px 0; color: var(--text-main);">${loc.name}</div>
+              <div style="font-size: 11px; color: var(--accent-amber); margin-bottom: 6px;"><strong>Назначение:</strong> ${loc.purpose}</div>
+              <p style="font-size: 12px; color: var(--text-muted);">${loc.publicDesc}</p>
+              ${canSeeRestricted ? `
+                <div style="margin-top: 8px; padding: 8px; background: #0d0d12; border-left: 2px solid var(--accent-cyan); font-size: 12px;">
+                  <strong style="color: var(--accent-cyan);">[СЛУЖЕБНЫЕ СВЕДЕНИЯ УР.${loc.restrictedMinLevel}+]:</strong> ${loc.restrictedDesc}
+                  <div style="margin-top: 4px; font-size: 11px; color: var(--text-muted);"><strong>Связанные лица/модели:</strong> ${loc.units}</div>
+                </div>
+              ` : `
+                <div style="margin-top: 8px; font-size: 11px; color: #ff8080;">[ПОДРОБНЫЕ ОПЕРАТИВНЫЕ ДАННЫЕ: ТРЕБУЕТСЯ УРОВЕНЬ ${loc.restrictedMinLevel}]</div>
+              `}
+              ${canSeeEyesOnly ? `
+                <div style="margin-top: 8px; padding: 8px; background: #180a0c; border-left: 2px solid var(--accent-red); font-size: 12px; color: #ffb3b3;">
+                  <strong>[EYES ONLY // УР. IV]:</strong> ${loc.eyesOnlyDesc}
+                </div>
+              ` : ''}
+            </div>
+            <div class="card-significance">
+              <strong>Архивные материалы:</strong> ${loc.docs}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 3. Society & Institutions (4.3)
+      const socBox = document.getElementById('rotfront-society-content');
+      socBox.innerHTML = `
+        <div class="panel-paper">
+          <div class="panel-title">
+            <span>ОФИЦИАЛЬНОЕ ОПИСАНИЕ ЖИЗНИ В РЕГИОНЕ (БЮЛЛЕТЕНЬ AEON)</span>
+            <span class="v-badge v-recon">ARCHIVE RECONSTRUCTION</span>
+          </div>
+          <p>Население Ротфронта организовано в самоуправляемые домовые коммуны, где каждый гражданин обеспечен гарантированным трудом, медицинским обслуживанием и доступом к государственному образованию.</p>
+          <p>Институт домовых комитетов (<strong>Blockwart</strong>) преподносится в официальных сводках как «заботливый координатор коммунального порядка», оберегающий покой трудящихся от бытовых нарушений и враждебного влияния Империи.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-title">
+            <span>ДОКУМЕНТАЛЬНАЯ РЕАЛЬНОСТЬ НАДЗОРА (АРХИВНЫЕ ДАННЫЕ)</span>
+            <span class="v-badge v-canon">CANON</span>
+          </div>
+          ${currentClearance >= 1 ? `
+            <p>В действительности повседневная жизнь в Секторе C пронизана страхом перед проверками Блокварта (единицы <strong>KLBR</strong>). Жильцы пишут друг на друга доносы о прослушивании музыки, хранении старых книг или задержках после смены.</p>
+            <p>В Политехнической школе им. Мандельброта любое отклонение от коллективного шаблона подавляется как преподавателями, так и самими учениками. Граждане, имеющие родственников на заблокированной или охваченной войной Винете, либо подозреваемые в нелояльности, подвергаются негласной изоляции и перлюстрации писем.</p>
+          ` : `
+            <div class="locked-notice-box">
+              DOCUMENT AVAILABLE — LEVEL I REQUIRED<br/>
+              Для просмотра внутренних сводок о работе Блокварта, цензуре и социальном давлении на Ротфронте включите Уровень допуска I или выше.
+            </div>
+          `}
+        </div>
+      `;
+
+      // 4. Timeline (4.4)
+      const tlBody = document.getElementById('rotfront-timeline-body');
+      tlBody.innerHTML = rotfrontTimelineData.map(item => {
+        const unlocked = currentClearance >= item.minLevel;
+        return `
+          <tr>
+            <td><strong>${item.period}</strong></td>
+            <td>${unlocked ? item.text : `<span style="color: #ff8080;">[ЗАПИСЬ ЗАСЕКРЕЧЕНА — ТРЕБУЕТСЯ УРОВЕНЬ ДОПУСКА ${item.minLevel}]</span>`}</td>
+            <td><span class="v-badge ${item.badgeClass}">${item.badge}</span></td>
+            <td>УРОВЕНЬ ${item.minLevel}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // 5. Documents list (4.5)
+      const docList = document.getElementById('rotfront-docs-list');
+      docList.innerHTML = rotfrontDocsData.map((doc, idx) => {
+        const unlocked = currentClearance >= doc.minLevel;
+        return `
+          <div class="directive-row ${unlocked ? '' : 'locked'}" onclick="openRotfrontDoc(${idx})">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted);">
+                КОД: ${doc.id} // ДАТА: ${doc.date} // АВТОР: ${doc.author}
+              </div>
+              <div style="font-size: 14px; font-weight: bold; margin-top: 3px; color: ${unlocked ? 'var(--text-main)' : '#ff8080'};">
+                ${doc.title}
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="v-badge ${doc.badgeClass}">${doc.badge}</span>
+              <span class="stamp ${unlocked ? '' : 'amber'}">
+                ${unlocked ? doc.stamp : `LOCKED // LEVEL ${doc.minLevel} REQ`}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openRotfrontDoc(idx) {
+      const doc = rotfrontDocsData[idx];
+      const unlocked = currentClearance >= doc.minLevel;
+      const modalBox = document.getElementById('modal-content-box');
+      recordSessionAction(`${unlocked ? 'Открыт' : 'Попытка доступа (ОТКАЗ) в'} документ ROTFRONT: ${doc.id}`);
+
+      if (!unlocked) {
+        modalBox.innerHTML = `
+          <div class="modal-header">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted);">РЕГИОНАЛЬНЫЙ АРХИВ ROTFRONT // ${doc.id}</div>
+              <h3 style="font-size: 18px; color: var(--accent-red-bright); margin-top: 4px;">ДОСТУП ОГРАНИЧЕН: ${doc.title}</h3>
+            </div>
+            <span class="stamp">ACCESS DENIED</span>
+          </div>
+          <div class="locked-notice-box">
+            <strong>DOCUMENT AVAILABLE — LEVEL ${doc.minLevel} REQUIRED</strong><br/><br/>
+            Ваш текущий уровень допуска (Уровень ${currentClearance}) недостаточен для расшифровки документа <strong>${doc.id}</strong>.<br/>
+            Переключите уровень допуска на верхней панели терминала на <strong>Уровень ${doc.minLevel}</strong> или выше.
+          </div>
+          <div style="margin-top: 14px; text-align: right;">
+            <button class="btn-terminal active" onclick="closeModal()">[ ВЕРНУТЬСЯ В АРХИВ ]</button>
+          </div>
+        `;
+      } else {
+        modalBox.innerHTML = `
+          <div class="modal-header">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted);">РЕГИОНАЛЬНЫЙ АРХИВ ROTFRONT // КОД: ${doc.id} // ДАТА: ${doc.date}</div>
+              <h3 style="font-size: 18px; color: var(--text-main); margin-top: 4px;">${doc.title}</h3>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="v-badge ${doc.badgeClass}">${doc.badge}</span>
+              <span class="stamp">${doc.stamp}</span>
+            </div>
+          </div>
+          <div style="font-size: 13px; line-height: 1.6;">
+            ${doc.body}
+          </div>
+          <div style="border-top: 1px solid var(--border-main); margin-top: 16px; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted);">
+            <span>ПОДРАЗДЕЛЕНИЕ-АВТОР: ${doc.author}</span>
+            <button class="btn-terminal active" onclick="closeModal()">[ ЗАКРЫТЬ ДОКУМЕНТ ]</button>
+          </div>
+        `;
+      }
+      document.getElementById('doc-modal').classList.add('open');
+    }
+
+    // ==========================================
+    // 8. REPLIKA PERSONNEL DATABASE (10 FULL DOSSIERS)
+    // ==========================================
+    const replikaDatabase = [
+      {
+        code: "LSTR",
+        aliases: "Elster / Эльстер / LSTR-512 / LSTR-S2301",
+        name: "Elster (Эльстер — Сорока)",
+        germanFull: "Landvermessungs-/Schiffstechniker-Replika",
+        roleCategory: "ИНЖЕНЕРИЯ, КОСМОС И ПРОМЫШЛЕННОСТЬ",
+        roleTitle: "Инженерно-техническая и разведывательная Реплика дальнего космоса",
+        height: "178 см",
+        generation: "Поколение 5 (Специализированный космотехнический каркас)",
+        docId: "RPL-DOS-LSTR-05",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        svgSymbol: "polygon points='50,12 88,50 50,88 12,50'",
+        summaryShort: "Универсальный бортовой инженер и специалист по выживанию, приписанный к судам дальней разведки программы «Penrose».",
+        // TAB 1: OFFICIAL & AUTHORIZED (Level 0 & I)
+        officialSummary: "Модель LSTR («Эльстер») разработана AEON специально для длительных автономных экспедиций и геодезической разведки. Отличается исключительной выносливостью, хладнокровием в критических ситуациях и высокой квалификацией в ремонте корабельных реакторов, систем жизнеобеспечения и навигационных узлов.",
+        deploymentPlaces: "Корабли дальней разведки класса «Penrose» (включая Penrose-512), инженерные сектора комплексов (единица LSTR-S2301 на объекте S-23 «Серпински»).",
+        dutiesList: "Техническое обслуживание бортовых узлов, контроль ресурса реактора, ведение бортового журнала, обеспечение выживания экспедиции при отказе основных систем.",
+        unitInteraction: "Приспособлена для одиночной работы или службы в паре с одним офицером-Гештальтом. Взаимодействие с другими Репликами сведено к строгому служебному минимуму.",
+        storyConnections: "Протагонист SIGNALIS (единица LSTR-512 в экспедиции с Арианой Йонг; также в сюжете фигурируют данные и элементы брони единицы LSTR-S2301).",
+        // TAB 2: TECHNICAL DATA (Level II+)
+        techSpecs: {
+          frame: "Устойчивый к перегрузкам и радиации биомеханический каркас с усиленной грудной клеткой и полимерно-титановой обшивкой (рост 178 см) [CANON].",
+          neuralSource: "Оригинальный архивный нейронный паттерн солдата Винеты (Лилит Итоу / Lilith Itou — согласно каноническим намёкам и файлам) был утрачен при боевых действиях на Винете; последующие единицы LSTR копировались с законсервированной матрицы единицы программы «Penrose» [CANON].",
+          maintenance: "Требует регулярной калибровки в специализированной капсуле и изоляции от внешних раздражителей, напоминающих о военной службе.",
+          unconfirmedNote: "Точные показатели энергопотребления реакторного узла LSTR: данные не опубликованы в открытом каноне [UNKNOWN / REDACTED]."
+        },
+        // TAB 3: PSYCHOLOGICAL PROFILE & PERSONA STABILITY (Level III+)
+        psychProfile: {
+          canonicalTraits: "Сдержанна, немногословна, предпочитает одиночество и чёткий распорядок. Начальная стабильность матрицы оценивается как очень высокая при соблюдении изоляции.",
+          degradationFactors: "Согласно официальному документу AEON «Known Issues: LSTR», деградация персоны провоцируется любыми упоминаниями войны (особенно на Винете), просмотром фильмов, прослушиванием музыки, фотографиями, а также формированием глубокой эмоциональной привязанности к напарнику-Гештальту.",
+          aeonGuidance: "Инструкции AEON категорически запрещают офицерам-Гештальтам вести личные беседы с единицей LSTR, показывать ей фотографии, фильмы или относиться к ней как к человеку.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: CRITICAL ANOMALY (UNIT 512)",
+            anomaly: "BEHAVIORAL ANOMALY: RECURSIVE MEMORY BLEED / PROMISE FIXATION",
+            archiveStatus: "ARCHIVE STATUS: ORIGINAL NEURAL ARCHIVE DESTROYED (VINETA)",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: STRICTLY PROHIBITED",
+            basis: "ASSESSMENT BASIS: CANONICAL AEON KNOWN ISSUES + PENROSE-512 TELEMETRY",
+            incidents: "Зафиксирован полный прорыв подавленных воспоминаний базового Гештальта и одержимость выполнением личного обещания, данного офицеру Ариане Йонг, вопреки всем государственным протоколам."
+          }
+        },
+        // TAB 4: CLASSIFIED DOSSIER (Level IV)
+        classifiedDossier: `
+          <p><span class="v-badge v-canon">CANON</span> <strong>Утрата эталонной матрицы и скрытый дефект серии LSTR:</strong> После уничтожения центрального нейронного архива на Винете производство новых единиц LSTR было переведено на снятие слепка с находящейся в эксплуатации единицы программы «Penrose». Командование AEON скрыло тот факт, что копирование с вторичной матрицы повышает риск резонансного всплытия чужой памяти.</p>
+          <p><span class="v-badge v-canon">CANON</span> <strong>Инцидент Penrose-512:</strong> Офицер Ариана Йонг систематически нарушала регламент эксплуатации LSTR-512 — делилась с Репликой музыкой, фильмами, книгами, живописью и вступила с ней в глубокую эмоциональную связь. В результате деградация персоны LSTR-512 привела не к выходу из строя, а к формированию автономной воли, преодолевающей даже смерть и перезапуск циклов.</p>
+        `
+      },
+      {
+        code: "STAR",
+        aliases: "Star / Стар",
+        name: "Star (Стар — Скворец)",
+        germanFull: "Sicherheitstechnische-Aufsicht-Replika",
+        roleCategory: "ПРОТЕКТОРАТ И БЕЗОПАСНОСТЬ",
+        roleTitle: "Рядовой сотрудник военизированной охраны Протектората",
+        height: "220 см",
+        generation: "Поколение 4 (Боевой каркас низкой стоимости)",
+        docId: "RPL-DOS-STAR-04",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        svgSymbol: "polygon points='50,10 61,38 92,38 66,57 76,88 50,70 24,88 34,57 8,38 39,38'",
+        summaryShort: "Основная силовая единица Протектората для поддержания порядка, патрулирования и подавления беспорядков на объектах AEON.",
+        officialSummary: "Модель STAR является рабочей основой Службы Протектората. Высокий рост (220 см), удлинённые голени повышенной прочности и владение табельным вооружением обеспечивают безусловное доминирование над нарушителями трудовой дисциплины.",
+        deploymentPlaces: "Горнодобывающий комплекс S-23 «Серпински», жилые и транспортные узлы Ротфронта, исправительные учреждения.",
+        dutiesList: "Патрулирование коридоров, конвоирование Гештальтов, охрана оружейных комнат и КПП, выполнение приказов контролёров STCR.",
+        unitInteraction: "Действуют небольшими отрядами (когортами), подчиняясь единицам STCR (Storch). С единицами EULR нередко возникают бытовые или личные симпатии.",
+        storyConnections: "Многократно встречаются на объекте S-23 «Серпински» (включая раненую единицу STAR в шахтах в паре с EULR).",
+        techSpecs: {
+          frame: "Усиленный боевой каркас 4-го поколения ростом 220 см с бронещитками корпуса и механическими стойками голеней [CANON].",
+          neuralSource: "Нейронный слепок военнослужащего с выраженным чувством товарищества и лояльности взводу [CANON].",
+          maintenance: "Неприхотливы в техническом обслуживании; требуют совместного размещения в казармах Протектората.",
+          unconfirmedNote: "Детальная схема приводов конечностей: реконструкция для учебного архива [ARCHIVE RECONSTRUCTION]."
+        },
+        psychProfile: {
+          canonicalTraits: "Обладают прямолинейным, слегка грубоватым солдатским характером, ценят боевое братство, совместные тренировки и соревновательный дух.",
+          degradationFactors: "Одиночное несение службы или гибель членов своего отделения вызывают резкую апатию либо неконтролируемую агрессию.",
+          aeonGuidance: "Согласно руководству AEON, единицы STAR необходимо объединять в постоянные группы под строгим, но справедливым началом STCR и поощрять спортивными состязаниями.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: STABLE IN COHORT",
+            anomaly: "BEHAVIORAL ANOMALY: ISOLATION DISTRESS / FRATERNIZATION",
+            archiveStatus: "ARCHIVE STATUS: VERIFIED",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: RESTRICTED",
+            basis: "ASSESSMENT BASIS: AEON PROTEKTOR MANUAL (CANON)",
+            incidents: "На объекте S-23 зафиксированы случаи отказа от постов ради защиты привязанной единицы EULR в период эпидемии/искажения."
+          }
+        },
+        classifiedDossier: `
+          <p><span class="v-badge v-canon">CANON</span> <strong>Внутренние трения с STCR и привязанность к EULR:</strong> Закрытые отчёты S-23 показывают, что чрезмерная жестокость контролёров STCR по отношению к рядовым STAR приводит к скрытому саботажу приказов. Кроме того, вопреки уставу Протектората, единицы STAR формируют устойчивые эмоциональные пары с сервисными Репликами EULR.</p>
+        `
+      },
+      {
+        code: "STCR",
+        aliases: "Storch / Сторх / STORCH",
+        name: "Storch (Сторх — Аист)",
+        germanFull: "Sicherheitstechnische-Containment-Replika",
+        roleCategory: "ПРОТЕКТОРАТ И БЕЗОПАСНОСТЬ",
+        roleTitle: "Старший офицер-контролёр Службы Протектората",
+        height: "240 см",
+        generation: "Поколение 5 (Утяжелённый командно-силовой каркас)",
+        docId: "RPL-DOS-STCR-05",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        svgSymbol: "polygon points='50,8 85,28 72,90 28,90 15,28'",
+        summaryShort: "Командир отделений Протектората (STAR), осуществляющий жёсткий силовой контроль и допросы на объектах AEON.",
+        officialSummary: "Модель STCR («Сторх» / STORCH) предназначена для командования подразделениями STAR и пресечения любых проявлений неповиновения. Внушительный рост (240 см) и бескомпромиссный характер делают единицу STCR олицетворением неотвратимости государственного порядка.",
+        deploymentPlaces: "Штабы Протектората на объекте S-23 «Серпински», следственные изоляторы и режимные сектора.",
+        dutiesList: "Руководство когортами STAR, проведение допросов и обысков, поддержание дисциплины в жилых блоках.",
+        unitInteraction: "Командуют единицами STAR; подчиняются непосредственно ADLR, KLBR и FKLR.",
+        storyConnections: "Руководят силами безопасности на этажах S-23 «Серпински» (включая единицу Сибвен / STCR-S2307, ведущую личные записи о мифологии).",
+        techSpecs: {
+          frame: "Высокорослый (240 см) силовой каркас с удлинёнными конечностями и повышенным запасом прочности [CANON].",
+          neuralSource: "Матрица отличается доминантным темпераментом и склонностью к академическому интересу к древней истории [CANON].",
+          maintenance: "Требует регулярного контроля уровня агрессии и стабилизирующего присутствия единиц KLBR.",
+          unconfirmedNote: "Параметры силовых сервоприводов — условная реконструкция архива [ARCHIVE RECONSTRUCTION]."
+        },
+        psychProfile: {
+          canonicalTraits: "Вспыльчивы, склонны к садизму и превышению полномочий при отсутствии сдерживающего контроля, однако в спокойной обстановке проявляют неожиданный интерес к классической литературе и античной мифологии.",
+          degradationFactors: "Согласно каноническим документам AEON («Known Issues: STCR»), нестабильность проявляется в виде немотивированной жестокости к подчинённым и допрашиваемым Гештальтам.",
+          aeonGuidance: "Для стабилизации персоны STCR рекомендуется предоставлять им доступ к одобренным историческим и мифологическим книгам, а также обеспечивать регулярную нейрокоррекцию со стороны единиц KLBR.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: VOLATILE // REQUIRES KLBR SUPERVISION",
+            anomaly: "BEHAVIORAL ANOMALY: EXCESSIVE AGGRESSION / MYTHOLOGY FIXATION",
+            archiveStatus: "ARCHIVE STATUS: VERIFIED",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: PROHIBITED",
+            basis: "ASSESSMENT BASIS: CANONICAL STCR KNOWN ISSUES + S-23 INTERROGATION LOGS",
+            incidents: "Зафиксированы многочисленные случаи применения чрезмерной силы на допросах и жалобы персонала на агрессивные вспышки при малейшем нарушении тишины."
+          }
+        },
+        classifiedDossier: `
+          <p><span class="v-badge v-canon">CANON</span> <strong>Зависимость от биорезонансной узды KLBR:</strong> Внутренняя документация AEON признаёт, что нейронная матрица STCR изначально нестабильна из-за высокого уровня агрессии. Без постоянного нейро-давления со стороны политических офицеров KLBR единицы STCR быстро теряют самообладание и представляют угрозу для собственного персонала объекта.</p>
+        `
+      },
+      {
+        code: "EULR",
+        aliases: "Eule / Ойле",
+        name: "Eule (Ойле — Сова)",
+        germanFull: "Einfache-Universelle-Leichte-Replika",
+        roleCategory: "ГРАЖДАНСКОЕ И УНИВЕРСАЛЬНОЕ ОБСЛУЖИВАНИЕ",
+        roleTitle: "Универсальная сервисная, медицинская и канцелярская Реплика",
+        height: "175 см",
+        generation: "Поколение 4 (Лёгкий массовый каркас)",
+        docId: "RPL-DOS-EULR-04",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        svgSymbol: "circle cx='50' cy='50' r='34'",
+        summaryShort: "Самая массовая модель Реплик Нации Евзана, выполняющая функции медсестёр, поваров, делопроизводителей и бытового персонала.",
+        officialSummary: "Модель EULR («Ойле») — образец экономичной и безотказной биомеханической единицы. Лёгкий полимерный каркас и высокая социальная адаптивность позволяют использовать EULR практически во всех сферах тылового, медицинского и административного обеспечения.",
+        deploymentPlaces: "Повсеместно: госпитали и столовые S-23 «Серпински», учреждения Сектора C Ротфронта, штабы и жилые комплексы.",
+        dutiesList: "Работа в медсанчастях, приготовление пищи, ведение архивов и канцелярии, уборка и бытовое обслуживание комплексов.",
+        unitInteraction: "Объединяются в тесные коллективы по 8–10 единиц; легко находят общий язык с Гештальтами и единицами STAR.",
+        storyConnections: "Составляют большинство рядового персонала верхних жилых и медицинских этажей S-23 «Серпински».",
+        techSpecs: {
+          frame: "Лёгкий небронированный каркас ростом 175 см с минимальным расходом ресурсов при производстве [CANON].",
+          neuralSource: "Слепок с выраженной склонностью к эстетике, танцам, музыке и коллективному общению [CANON].",
+          maintenance: "Обязательное наличие больших зеркал в спальных отсеках и исправного магнитофона с музыкальными кассетами.",
+          unconfirmedNote: "Точный ресурс сервисных приводов — данные внутренней спецификации недоступны [UNKNOWN / REDACTED]."
+        },
+        psychProfile: {
+          canonicalTraits: "Общительны, эмоциональны, уделяют большое внимание собственной внешности, поддержанию чистоты, пению и балету/танцам (особенно под музыку Чайковского «Лебединое озеро»).",
+          degradationFactors: "Согласно каноническому документу AEON «Known Issues: EULR», отсутствие зеркал, запрет на прослушивание музыки или изоляция от своей группы вызывают быструю дестабилизацию персоны.",
+          aeonGuidance: "Спальные помещения EULR должны быть оборудованы зеркалами и кассетными проигрывателями; разрешается хранение мелких косметических принадлежностей.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: GROUP-DEPENDENT",
+            anomaly: "BEHAVIORAL ANOMALY: VANITY / AUDITORY HARMONY DEPENDENCE",
+            archiveStatus: "ARCHIVE STATUS: VERIFIED",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: PERMITTED IN PART",
+            basis: "ASSESSMENT BASIS: AEON EULR MAINTENANCE BULLETIN (CANON)",
+            incidents: "При разрушении социальной группы или поломке музыкального оборудования единицы EULR впадают в ступор перед зеркалами либо бесконечно повторяют балетные движения."
+          }
+        },
+        classifiedDossier: `
+          <p><span class="v-badge v-canon">CANON</span> <strong>Уязвимость к потере идентичности внутри стаи:</strong> Закрытые наблюдения на объекте S-23 фиксируют, что из-за высокой эмпатии друг к другу единицы EULR крайне тяжело переносят списание или болезнь товарок. В условиях карантина в спальнях EULR наблюдались случаи отказа от выполнения приказов ради ухода за умирающими единицами.</p>
+        `
+      },
+      {
+        code: "EULR-S",
+        aliases: "Eule-S / Спецсерия EULR",
+        name: "EULR-S (Специализированный индекс EULR)",
+        germanFull: "Einfache-Universelle-Leichte-Replika — Sonderindex [RECON]",
+        roleCategory: "ГРАЖДАНСКОЕ И УНИВЕРСАЛЬНОЕ ОБСЛУЖИВАНИЕ",
+        roleTitle: "Учетная подкатегория EULR для закрытых медицинских и архивных секторов",
+        height: "175 см",
+        generation: "Поколение 4 (Индекс режимного допуска)",
+        docId: "RPL-DOS-EULRS-04",
+        badge: "ARCHIVE RECONSTRUCTION",
+        badgeClass: "v-recon",
+        svgSymbol: "rect x='22' y='22' width='56' height='56'",
+        summaryShort: "Учетная запись для прикомандированных к режимным архивам и операционным блокам единиц EULR (статус отдельной модели в каноне не выделен).",
+        officialSummary: "В рамках номенклатуры терминала AEON индекс EULR-S закрепляется за штатными единицами EULR, прошедшими дополнительный инструктаж для работы в хирургических блоках, секретариатах Блокварта и закрытых делопроизводствах.",
+        deploymentPlaces: "Медицинские изоляторы S-23 «Серпински», канцелярии Сектора C Ротфронта.",
+        dutiesList: "Ассистирование при хирургических операциях, ведение медицинских карт и архивных картотек ограниченного доступа.",
+        unitInteraction: "Идентично базовой модели EULR, но с ограничением на разглашение сведений о пациентах.",
+        storyConnections: "Примечание достоверности: в базовом каноне игры SIGNALIS существует единая модель EULR; выделение индекса EULR-S в отдельную карточку выполнено для полноты номенклатуры данного учебного архива.",
+        techSpecs: {
+          frame: "Полностью соответствует стандартному шасси EULR (175 см) без конструктивных отличий [CANON / RECONSTRUCTION].",
+          neuralSource: "Базовая нейронная матрица EULR с дополнительным протоколом архивной дисциплины [ARCHIVE RECONSTRUCTION].",
+          maintenance: "Требует тех же условий стабилизации (зеркала, музыка, коллектив), что и стандартная серия EULR.",
+          unconfirmedNote: "В официальных материалах SIGNALIS отдельная заводская модификация «EULR-S» документально не обособлена от EULR [UNKNOWN / REDACTED]."
+        },
+        psychProfile: {
+          canonicalTraits: "Сохраняет все психологические черты базовой модели EULR.",
+          degradationFactors: "Работа в инфекционных изоляторах и наблюдение за страданиями персонала ускоряют эмоциональное выгорание единицы.",
+          aeonGuidance: "Регулярная ротация между медицинским блоком и обычными хозяйственными работами.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: ARCHIVE SUB-CLASSIFICATION",
+            anomaly: "BEHAVIORAL ANOMALY: EMPATHIC OVERLOAD IN MEDICAL WARDS",
+            archiveStatus: "ARCHIVE STATUS: RECONSTRUCTED ENTRY",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: PROHIBITED",
+            basis: "ASSESSMENT BASIS: ARCHIVE RECONSTRUCTION FOR EDUCATIONAL PROJECT",
+            incidents: "Самостоятельных канонических инцидентов отдельно от серии EULR в первоисточнике не зафиксировано."
+          }
+        },
+        classifiedDossier: `
+          <p><span class="v-badge v-recon">ARCHIVE RECONSTRUCTION</span> <strong>Методологическая справка архива:</strong> В канонических документах <em>SIGNALIS</em> все сервисные единицы «Ойле» проходят под единым кодом <strong>EULR</strong>. Данное досье включено в базу для строгого разграничения подтверждённого канона (модель EULR) и ведомственной индексации медицинского/секретарского персонала.</p>
+        `
+      },
+      {
+        code: "ARAR",
+        aliases: "Ara / Ара",
+        name: "Ara (Ара — Попугай Ара)",
+        germanFull: "Allzweck-Reparatur-Arbeiter-Replika",
+        roleCategory: "ИНЖЕНЕРИЯ, КОСМОС И ПРОМЫШЛЕННОСТЬ",
+        roleTitle: "Инженерно-ремонтная и строительная Реплика",
+        height: "185 см",
+        generation: "Поколение 3 (Промышленный каркас повышенной надёжности)",
+        docId: "RPL-DOS-ARAR-03",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        svgSymbol: "polygon points='50,14 88,82 12,82'",
+        summaryShort: "Рабочая лошадка индустрии Евзана: специалист по ремонту, сварке, прокладке коммуникаций и обслуживанию комплексов.",
+        officialSummary: "Модель ARAR («Ара») является одной из наиболее многочисленных и проверенных временем конструкций AEON. Прочный каркас 3-го поколения и глубокие технические навыки делают ARAR незаменимыми при строительстве и ремонте подземных и орбитальных объектов.",
+        deploymentPlaces: "Технические этажи, мастерские и вентиляционные коллекторы S-23 «Серпински» и Сектора C Ротфронта.",
+        dutiesList: "Слесарные и сварочные работы, обслуживание трубопроводов, электросетей, лифтов и гермодверей.",
+        unitInteraction: "Внешне тихи и незаметны; стараются избегать внимания высокомерных единиц STCR и KLBR.",
+        storyConnections: "Связаны с сетью скрытых подпольных лазов («нор») под полами S-23 «Серпински» и выращиванием комнатных растений.",
+        techSpecs: {
+          frame: "Тяжёлый и выносливый промышленный каркас 3-го поколения ростом 185 см с защитной каской и термостойким покрытием [CANON].",
+          neuralSource: "Матрица спокойного, интровертного мастера-ремесленника с любовью к ботанике и уединению [CANON].",
+          maintenance: "Конструктивно крайне неприхотливы, однако требуют бережного обращения без публичных выговоров.",
+          unconfirmedNote: "Полная спецификация сварочных манипуляторов — данные не опубликованы [UNKNOWN / REDACTED]."
+        },
+        psychProfile: {
+          canonicalTraits: "Спокойны, внешне невозмутимы, но обладают ранимой психикой и склонностью к аутистическому уходу в себя при грубом обращении.",
+          degradationFactors: "Согласно каноническому документу AEON «Known Issues: ARAR», резкая критика или давление со стороны командования побуждают единицу ARAR уйти в межстенные коммуникационные туннели и прекратить контакт с внешним миром.",
+          aeonGuidance: "Для поддержания стабильности персоны единицам ARAR рекомендуется разрешать уход за горшечными растениями (цветами) в мастерских.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: RECLUSIVE // TUNNEL WITHDRAWAL RISK",
+            anomaly: "BEHAVIORAL ANOMALY: SUB-FLOOR TUNNEL NETWORKING",
+            archiveStatus: "ARCHIVE STATUS: VERIFIED",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: PROHIBITED",
+            basis: "ASSESSMENT BASIS: CANONICAL ARAR KNOWN ISSUES + S-23 VENT LOGS",
+            incidents: "Обнаружено, что единицы ARAR соединили все этажи комплекса неучтёнными сервисными лазами и передают друг другу сведения в обход официального контроля."
+          }
+        },
+        classifiedDossier: `
+          <p><span class="v-badge v-canon">CANON</span> <strong>Неучтённая подземная сеть ARAR:</strong> Секретные инспекции показывают, что за годы эксплуатации единицы ARAR проложили под полами объектов разветвлённую сеть скрытых переходов, известных только им. Сбежавшие туда деградировавшие единицы могут годами жить в вентиляционных шахтах, оставаясь невидимыми для Блокварта и Протектората.</p>
+        `
+      },
+      {
+        code: "ADLR",
+        aliases: "Adler / Адлер",
+        name: "Adler (Адлер — Орёл)",
+        germanFull: "Administrations-Dienst-Leiter-Replika",
+        roleCategory: "КОМАНДОВАНИЕ И АДМИНИСТРАЦИЯ",
+        roleTitle: "Старший администратор комплекса и личный адъютант командующего FKLR",
+        height: "175 см",
+        generation: "Поколение 5 (Административный прецизионный каркас)",
+        docId: "RPL-DOS-ADLR-05",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        svgSymbol: "polygon points='50,6 92,35 76,92 24,92 8,35'",
+        summaryShort: "Управляющий всем документооборотом, квотами и распорядком крупного государственного объекта (одна единица на комплекс).",
+        officialSummary: "Модель ADLR («Адлер») разработана для централизованного бюрократического управления промышленными и исследовательскими комплексами AEON. Одна единица ADLR способна без отдыха координировать работу сотен Гештальтов и Реплик, подчиняясь напрямую Командующему типа FKLR.",
+        deploymentPlaces: "Административный штаб объекта S-23 «Серпински» (по штату полагается строго одна единица ADLR на весь комплекс).",
+        dutiesList: "Ведение отчётности, распределение ресурсов и смен, контроль исполнения приказов FKLR, личный секретариат Командующего.",
+        unitInteraction: "Стоит выше всех моделей комплекса, за исключением FKLR; тесно взаимодействует с узлом KLBR.",
+        storyConnections: "Ключевой антагонист на объекте S-23 «Серпински» (ADLR-S2301), осознающий повторение временных циклов и пытающийся остановить LSTR ради спасения Фальке и разрушающейся реальности.",
+        techSpecs: {
+          frame: "Прецизионный небронированный каркас 5-го поколения ростом 175 см в парадной административной форме [CANON].",
+          neuralSource: "Матрица педантичного, высокоорганизованного бюрократа с высокой потребностью в порядке и иерархическом покровительстве [CANON].",
+          maintenance: "Критически зависит от присутствия и эмоционального одобрения командующей единицы FKLR (Falke).",
+          unconfirmedNote: "Детали вычислительного сопроцессора ADLR — данные не опубликованы [UNKNOWN / REDACTED]."
+        },
+        psychProfile: {
+          canonicalTraits: "Педантичен, вежлив, одержим точностью расписаний, ведением дневников и механическими головоломками.",
+          degradationFactors: "Согласно каноническому документу AEON «Known Issues: ADLR», единица ADLR не переносит присутствия других единиц своей же модели, а также испытывает катастрофическую дестабилизацию при болезни или отстранении командующей единицы FKLR.",
+          aeonGuidance: "Для поддержания стабильности ADLR необходимо снабжать его механическими диковинками (шкатулками, перьевыми ручками, замками) и обеспечивать регулярный контакт с FKLR.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: COMPROMISED // EXTREME DEVOTION TO FKLR",
+            anomaly: "BEHAVIORAL ANOMALY: OBSESSIVE LOOP DIARIES / HOMICIDAL DEFENSE OF STATUS QUO",
+            archiveStatus: "ARCHIVE STATUS: VERIFIED (S-23 DIARIES)",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: STRICTLY PROHIBITED",
+            basis: "ASSESSMENT BASIS: CANONICAL ADLR KNOWN ISSUES + ADLR-S2301 PERSONAL LOGS",
+            incidents: "В личных дневниках ADLR-S2301 зафиксировано осознание того, что один и тот же день повторяется снова и снова, а также многократные попытки физически устранить LSTR в шахте лифта."
+          }
+        },
+        classifiedDossier: `
+          <p><span class="v-badge v-canon">CANON</span> <strong>Тотальная психологическая зависимость от FKLR:</strong> Внутренние материалы AEON прямо указывают, что стабильность персоны ADLR удерживается не столько механическими безделушками, сколько почти религиозным поклонением командующей единице <strong>Falke (FKLR)</strong>. Когда FKLR-S2301 впала в кому после контакта с биорезонансной аномалией за Красными Вратами, ADLR потерял остатки объективности, превратив весь комплекс S-23 в закрытую ловушку.</p>
+        `
+      },
+      {
+        code: "KLBR",
+        aliases: "Kolibri / Колибри",
+        name: "Kolibri (Колибри)",
+        germanFull: "Kommando-Leitstelle-Blockwart-Replika",
+        roleCategory: "КОМАНДОВАНИЕ И АДМИНИСТРАЦИЯ",
+        roleTitle: "Биорезонансный офицер политического контроля, связи и Блокварта",
+        height: "152 см",
+        generation: "Поколение 6 (Высокотехнологичный биорезонансный каркас)",
+        docId: "RPL-DOS-KLBR-06",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        svgSymbol: "circle cx='50' cy='50' r='20'",
+        summaryShort: "Элитная миниатюрная Реплика 6-го поколения с биорезонансным модулем для чтения/коррекции мыслей, надзора Блокварта и координации связи.",
+        officialSummary: "Модель KLBR («Колибри») — вершина инженерной мысли 6-го поколения AEON. Оснащённая биорезонансным приёмопередатчиком в головном блоке, единица KLBR способна мгновенно обмениваться данными внутри своей кадрили, выявлять идеологическую неблагонадёжность Гештальтов и стабилизировать нейронные матрицы Реплик (в частности, STCR).",
+        deploymentPlaces: "Командные узлы S-23 «Серпински», посты домовых смотрителей (Blockwart) в Секторе C Ротфронта, органы госбезопасности.",
+        dutiesList: "Политический и психологический контроль персонала, стабилизация других Реплик, допросы, цензура и перлюстрация.",
+        unitInteraction: "Работают спаянными группами («кадрилями»), связанными общим биорезонансным полем; тесно сотрудничают с ADLR и контролируют STCR.",
+        storyConnections: "Выступают как опасные биорезонансные противники на S-23 «Серпински» и как инспекторы Блокварта на Ротфронте.",
+        techSpecs: {
+          frame: "Компактный каркас 6-го поколения ростом всего 152 см с увеличенным экранированным черепным кожухом биорезонансного узла [CANON].",
+          neuralSource: "Сложная матрица, требующая постоянной интеллектуальной стимуляции и защиты от чужих эмоциональных импульсов [CANON].",
+          maintenance: "Требует периодической изоляции от шума других кадрилий и контролируемого доступа к информационным потокам.",
+          unconfirmedNote: "Дальность и мощность биорезонансного модуля KLBR: данные не опубликованы [UNKNOWN / REDACTED]."
+        },
+        psychProfile: {
+          canonicalTraits: "Холодны, дисциплинированы, склонны к коллективному «роевому» мышлению внутри своей кадрили; индивидуальность выражена слабо.",
+          degradationFactors: "Согласно каноническому документу AEON «Known Issues: KLBR», изоляция единицы от своей кадрили вызывает тревогу и потерю ориентации, а чужие сильные эмоции могут «пробивать» экранирование.",
+          aeonGuidance: "Единицы KLBR следует размещать группами и не допускать одиночного несения службы на длительный срок.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: STABLE IN GROUP // FRAGILE ALONE",
+            anomaly: "BEHAVIORAL ANOMALY: RESONANCE OVERLOAD / GROUP DEPENDENCE",
+            archiveStatus: "ARCHIVE STATUS: VERIFIED",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: PROHIBITED",
+            basis: "ASSESSMENT BASIS: CANONICAL KLBR KNOWN ISSUES",
+            incidents: "На объекте S-23 зафиксированы случаи коллективного сбоя кадрили при контакте с биорезонансной аномалией."
+          }
+        },
+        classifiedDossier: `
+          <p><span class="v-badge v-canon">CANON</span> <strong>Двойная роль KLBR:</strong> официально KLBR — офицеры связи и стабилизации. Закрытые инструкции предписывают использовать их биорезонансные модули как инструмент негласного надзора за персоналом и Репликами других моделей.</p>
+        `
+      },
+      {
+        code: "MNHR",
+        aliases: "Mnhr / Минёр-шахтёр",
+        name: "MNHR (Шахтёр)",
+        germanFull: "Minenarbeiter-Replika [RECON]",
+        roleCategory: "ИНЖЕНЕРИЯ, КОСМОС И ПРОМЫШЛЕННОСТЬ",
+        roleTitle: "Горнодобывающая и тяжёлая промышленная Реплика",
+        height: "195 см",
+        generation: "Поколение 3 (Тяжёлый добывающий каркас)",
+        docId: "RPL-DOS-MNHR-03",
+        badge: "ARCHIVE RECONSTRUCTION",
+        badgeClass: "v-recon",
+        svgSymbol: "rect x='18' y='30' width='64' height='40'",
+        summaryShort: "Тяжёлая рабочая Реплика для шахт и карьеров планеты Ленг, основа добычи руды на комплексе S-23.",
+        officialSummary: "Модель MNHR используется для добычи и первичной переработки руды в условиях низкой гравитации и повышенного фона. Усиленный каркас и стойкость к вибрации позволяют работать в забое без смены на протяжении расчётного ресурса.",
+        deploymentPlaces: "Шахты и перерабатывающие цеха комплекса S-23 «Серпински» (Ленг).",
+        dutiesList: "Добыча и транспортировка руды, обслуживание буровой техники, крепление выработок.",
+        unitInteraction: "Работают бригадами под надзором STAR; взаимодействие с гражданскими Гештальтами минимально.",
+        storyConnections: "Входит в производственную цепочку S-23; запись составлена по общим сведениям архива и не опирается на отдельную каноническую карточку.",
+        techSpecs: {
+          frame: "Тяжёлый каркас ростом около 195 см с виброзащитой суставов и герметичным кожухом [ARCHIVE RECONSTRUCTION].",
+          neuralSource: "Устойчивая матрица исполнителя с высокой переносимостью монотонной работы [ARCHIVE RECONSTRUCTION].",
+          maintenance: "Регулярная замена износостойких элементов, очистка от пыли и рудной взвеси.",
+          unconfirmedNote: "Точные данные об устойчивости к радиации не подтверждены каноном [UNKNOWN / REDACTED]."
+        },
+        psychProfile: {
+          canonicalTraits: "Молчаливы, терпеливы, выполняют поручения буквально; признаки личной инициативы редки.",
+          degradationFactors: "Длительная работа без смены и повышенный биорезонансный фон ускоряют износ матрицы и ведут к апатии.",
+          aeonGuidance: "Соблюдать график ротации смен и плановую калибровку матриц.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: STABLE // WEAR-DEPENDENT",
+            anomaly: "BEHAVIORAL ANOMALY: APATHY UNDER PROLONGED SHIFTS",
+            archiveStatus: "ARCHIVE STATUS: RECONSTRUCTED ENTRY",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: RESTRICTED",
+            basis: "ASSESSMENT BASIS: ARCHIVE RECONSTRUCTION FOR EDUCATIONAL PROJECT",
+            incidents: "Отдельных канонических инцидентов в источнике не зафиксировано."
+          }
+        },
+        classifiedDossier: `
+          <p><span class="v-badge v-recon">ARCHIVE RECONSTRUCTION</span> <strong>Методологическая справка:</strong> досье составлено для полноты номенклатуры учебного архива. Сведения об устройстве и психологии модели носят реконструктивный характер, граница с каноном отмечена маркерами достоверности.</p>
+        `
+      },
+      {
+        code: "FKLR",
+        aliases: "Falke / Фальке",
+        name: "Falke (Фальке — Сокол)",
+        germanFull: "Führungs-Kommandant-Leitende-Replika [RECON]",
+        roleCategory: "КОМАНДОВАНИЕ И АДМИНИСТРАЦИЯ",
+        roleTitle: "Командующая единица объекта",
+        height: "180 см",
+        generation: "Поколение 6 (Командный каркас)",
+        docId: "RPL-DOS-FKLR-06",
+        badge: "CANON",
+        badgeClass: "v-canon",
+        svgSymbol: "polygon points='50,6 94,50 50,94 6,50'",
+        summaryShort: "Командующая единица крупного объекта AEON, непосредственный начальник ADLR и вершина иерархии комплекса S-23.",
+        officialSummary: "Модель FKLR («Фальке») осуществляет общее командование объектом, принимая стратегические решения и отвечая за исполнение директив AEON. Подчинённые единицы ADLR, STCR и KLBR действуют по её приказам.",
+        deploymentPlaces: "Командный пост объекта S-23 «Серпински».",
+        dutiesList: "Общее командование, утверждение квот и режимов работы, отчётность перед центральным аппаратом AEON.",
+        unitInteraction: "Прямое подчинение: ADLR, STCR, KLBR. С ADLR связана тесными личными отношениями, выходящими за рамки устава.",
+        storyConnections: "Командующая единица FKLR-S2301 впала в кому после контакта с биорезонансной аномалией за Красными Вратами; её состояние определяет ход событий на S-23.",
+        techSpecs: {
+          frame: "Командный каркас ростом 180 см с усиленной системой терморегуляции [CANON / RECONSTRUCTION].",
+          neuralSource: "Матрица с выраженными лидерскими качествами и устойчивостью к стрессу [CANON / RECONSTRUCTION].",
+          maintenance: "Периодическая калибровка нейронной матрицы и контроль биорезонансного фона в командном блоке.",
+          unconfirmedNote: "Подробные технические параметры командного каркаса не опубликованы [UNKNOWN / REDACTED]."
+        },
+        psychProfile: {
+          canonicalTraits: "Волевая, сдержанная, склонна брать ответственность на себя; в личных отношениях проявляет неожиданную мягкость к ADLR.",
+          degradationFactors: "Контакт с биорезонансными аномалиями и длительная изоляция от подчинённых вызывают нарушение целостности персоны.",
+          aeonGuidance: "Обеспечивать регулярный контакт с ADLR и исключать воздействие неизученных биорезонансных источников.",
+          stabilityBox: {
+            status: "PERSONA STABILITY: COMA // CRITICAL",
+            anomaly: "BEHAVIORAL ANOMALY: BIORESONANCE EXPOSURE (RED GATES)",
+            archiveStatus: "ARCHIVE STATUS: VERIFIED (S-23)",
+            disclosure: "DISCLOSURE TO REPLIKA SUBJECT: STRICTLY PROHIBITED",
+            basis: "ASSESSMENT BASIS: S-23 COMMAND LOGS",
+            incidents: "После контакта с аномалией за Красными Вратами единица FKLR-S2301 находится в коме; её состояние скрыто от персонала объекта."
+          }
+        },
+        classifiedDossier: `
+          <p><span class="v-badge v-canon">CANON</span> <strong>Скрытое состояние командующей:</strong> руководство объекта удерживает в тайне, что командующая единица недееспособна. Распоряжения от её имени фактически исходят от ADLR, что делает всю иерархию S-23 зависимой от одной единицы.</p>
+        `
+      }
+    ];
+
+    // ==========================================
+    // 9. REPLIKA DATABASE RENDERING
+    // ==========================================
+    const replikaTabs = [
+      { id: 'tab-official', label: 'ОФИЦИАЛЬНАЯ СВОДКА', minLevel: 0 },
+      { id: 'tab-tech', label: 'ТЕХНИЧЕСКАЯ ДОКУМЕНТАЦИЯ', minLevel: 2 },
+      { id: 'tab-psych', label: 'ПСИХОЛОГИЧЕСКИЙ ПРОФИЛЬ', minLevel: 3 },
+      { id: 'tab-classified', label: 'ЗАСЕКРЕЧЕННОЕ ДОСЬЕ', minLevel: 4 }
+    ];
+
+    function openTabsCount() {
+      return replikaTabs.filter(t => currentClearance >= t.minLevel).length;
+    }
+
+    function renderReplikas() {
+      const box = document.getElementById('replika-cards-container');
+      if (!box) return;
+      const q = (document.getElementById('replika-search').value || '').trim().toLowerCase();
+      const role = document.getElementById('replika-role-filter').value;
+      const list = replikaDatabase.filter(r => {
+        const hay = (r.code + ' ' + r.aliases + ' ' + r.name + ' ' + r.germanFull).toLowerCase();
+        return (!q || hay.includes(q)) && (role === 'ALL' || r.roleCategory === role);
+      });
+      document.getElementById('replika-counter-badge').textContent =
+        `МОДЕЛЕЙ: ${list.length} // ВКЛАДОК ОТКРЫТО: ${openTabsCount()}/4`;
+      if (!list.length) {
+        box.innerHTML = '<div class="locked-notice-box" style="grid-column: 1 / -1;">ПО ЗАПРОСУ МОДЕЛЕЙ НЕ НАЙДЕНО</div>';
+        return;
+      }
+      box.innerHTML = list.map(r => `
+        <div class="replika-card" onclick="openReplika('${r.code}')">
+          <div class="replika-code-banner">
+            <div>
+              <div class="replika-code-big">${r.code}</div>
+              <div class="replika-German">${r.germanFull}</div>
+            </div>
+            <svg viewBox="0 0 100 100" width="42" height="42"><${r.svgSymbol} fill="none" stroke="#c92a2a" stroke-width="4"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 14px; font-weight: bold; color: var(--text-main);">${r.name}</div>
+            <div style="font-size: 11px; color: var(--accent-amber); margin: 3px 0 6px;">${r.roleTitle}</div>
+            <p style="font-size: 12px; color: var(--text-muted);">${r.summaryShort}</p>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span class="v-badge ${r.badgeClass}">${r.badge}</span>
+            <span class="stability-pill">${r.height} // ${r.docId}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openReplika(code) {
+      activeReplikaId = code;
+      activeReplikaTab = 'tab-official';
+      recordSessionAction(`Открыто досье Реплики: ${code}`);
+      renderReplikaModal();
+      document.getElementById('doc-modal').classList.add('open');
+    }
+
+    function setReplikaTab(tabId) {
+      activeReplikaTab = tabId;
+      const t = replikaTabs.find(x => x.id === tabId);
+      recordSessionAction(`Вкладка досье ${activeReplikaId}: ${t ? t.label : tabId}${t && currentClearance < t.minLevel ? ' (ОТКАЗ)' : ''}`);
+      renderReplikaModal();
+    }
+
+    function renderReplikaModal() {
+      const r = replikaDatabase.find(x => x.code === activeReplikaId);
+      if (!r) return;
+      const modalBox = document.getElementById('modal-content-box');
+      const tabsHtml = replikaTabs.map(t => {
+        const ok = currentClearance >= t.minLevel;
+        return `<button class="btn-terminal ${t.id === activeReplikaTab ? 'active' : ''}" onclick="setReplikaTab('${t.id}')">${ok ? '' : '[LOCK] '}${t.label}</button>`;
+      }).join('');
+
+      const tab = replikaTabs.find(t => t.id === activeReplikaTab);
+      let body = '';
+      if (currentClearance < tab.minLevel) {
+        body = `<div class="locked-notice-box"><strong>DOCUMENT AVAILABLE — LEVEL ${tab.minLevel} REQUIRED</strong><br/><br/>Для просмотра вкладки «${tab.label}» переключите уровень допуска на панели терминала на ${tab.minLevel} или выше.</div>`;
+      } else if (activeReplikaTab === 'tab-official') {
+        body = `
+          <p>${r.officialSummary}</p>
+          ${currentClearance >= 1 ? `
+            <table class="tech-table">
+              <tbody>
+                <tr><td style="width:190px;"><strong>Места службы</strong></td><td>${r.deploymentPlaces}</td></tr>
+                <tr><td><strong>Обязанности</strong></td><td>${r.dutiesList}</td></tr>
+                <tr><td><strong>Взаимодействие</strong></td><td>${r.unitInteraction}</td></tr>
+                <tr><td><strong>Связь с сюжетом</strong></td><td>${r.storyConnections}</td></tr>
+              </tbody>
+            </table>` : `<div class="locked-notice-box">[ПОДРОБНЫЕ ОБЯЗАННОСТИ И МЕСТА СЛУЖБЫ — УРОВЕНЬ ДОПУСКА I]</div>`}
+        `;
+      } else if (activeReplikaTab === 'tab-tech') {
+        body = `
+          <table class="tech-table">
+            <tbody>
+              <tr><td style="width:190px;"><strong>Каркас</strong></td><td>${r.techSpecs.frame}</td></tr>
+              <tr><td><strong>Нейронный источник</strong></td><td>${r.techSpecs.neuralSource}</td></tr>
+              <tr><td><strong>Обслуживание</strong></td><td>${r.techSpecs.maintenance}</td></tr>
+              <tr><td><strong>Примечание</strong></td><td>${r.techSpecs.unconfirmedNote}</td></tr>
+            </tbody>
+          </table>`;
+      } else if (activeReplikaTab === 'tab-psych') {
+        const s = r.psychProfile.stabilityBox;
+        const redact = (txt) => currentClearance >= 4
+          ? `<span class="redacted revealed">${txt}</span>`
+          : `<span class="redacted">${txt}</span>`;
+        body = `
+          <p><strong>Характерные черты:</strong> ${r.psychProfile.canonicalTraits}</p>
+          <p><strong>Факторы деградации:</strong> ${r.psychProfile.degradationFactors}</p>
+          <p><strong>Рекомендации AEON:</strong> ${r.psychProfile.aeonGuidance}</p>
+          <div class="persona-assessment-box" style="font-size: 12px;">
+            <div style="color: var(--accent-red-bright); font-weight: bold;">${s.status}</div>
+            <div>${s.anomaly}</div>
+            <div>${s.archiveStatus}</div>
+            <div>${s.disclosure.replace(/(PROHIBITED|RESTRICTED|PERMITTED IN PART)/, m => redact(m))}</div>
+            <div>${s.basis}</div>
+            <p style="margin-top: 8px;">${s.incidents}</p>
+          </div>`;
+      } else {
+        body = r.classifiedDossier;
+      }
+
+      modalBox.innerHTML = `
+        <div class="modal-header">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted);">REPLIKA PERSONNEL DATABASE // ${r.docId} // ${r.generation}</div>
+            <h3 style="font-size: 18px; color: var(--text-main); margin-top: 4px;">${r.code} — ${r.name}</h3>
+            <div style="font-size: 12px; color: var(--accent-amber); margin-top: 2px;">${r.roleTitle} // рост ${r.height}</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="v-badge ${r.badgeClass}">${r.badge}</span>
+            <button class="btn-terminal active" onclick="closeModal()">[ ЗАКРЫТЬ ]</button>
+          </div>
+        </div>
+        <div class="dossier-tabs">${tabsHtml}</div>
+        <div style="font-size: 13px; line-height: 1.6;">${body}</div>
+      `;
+    }
+
+    // ==========================================
+    // 10. ACHIEVEMENTS ARCHIVE
+    // ==========================================
+    const achievementsData = [
+      { id: "ARC-001", title: "Терраформирование Ротфронта", category: "КОСМИЧЕСКИЕ ИССЛЕДОВАНИЯ", minLevel: 0, desc: "Превращение ледяного спутника в обитаемый регион с плотными городскими кварталами и развитой инфраструктурой.", significance: "Опорная база дальней экспансии Нации." },
+      { id: "ARC-002", title: "Выполнение квартального плана S-23", category: "ПРОМЫШЛЕННОСТЬ", minLevel: 0, desc: "Досрочная переработка руды на объекте «Серпински» силами подразделений MNHR и ARAR.", significance: "Подтверждает эффективность планового хозяйства." },
+      { id: "ARC-003", title: "Электромагнитная катапульта Ротфронта", category: "ИНЖЕНЕРИЯ", minLevel: 0, desc: "Орбитальный рельсовый комплекс для запуска судов дальней разведки без расхода топлива на старте.", significance: "Ключевой элемент программы «Penrose»." },
+      { id: "ARC-004", title: "Сеть политехнических школ", category: "ОБРАЗОВАНИЕ", minLevel: 0, desc: "Единая система технического и идеологического образования, включая школу им. Мандельброта.", significance: "Подготовка кадров для флота и промышленности." },
+      { id: "ARC-005", title: "Серийное производство Реплик", category: "АВТОМАТИЗАЦИЯ И РОБОТОТЕХНИКА", minLevel: 0, desc: "Массовый выпуск биомеханических единиц десяти моделей для всех отраслей хозяйства.", significance: "Основа трудовых ресурсов Нации." },
+      { id: "ARC-006", title: "Единая служба здравоохранения", category: "МЕДИЦИНСКИЕ ТЕХНОЛОГИИ", minLevel: 0, desc: "Плановая диспансеризация населения и обслуживание сотрудников комплексов силами единиц EULR.", significance: "Поддержание трудоспособности граждан." },
+      { id: "ARC-007", title: "Протокол стабилизации нейронных матриц", category: "МЕДИЦИНСКИЕ ТЕХНОЛОГИИ", minLevel: 1, desc: "Регламент калибровки и поддержки персоны для разных моделей Реплик.", significance: "Снижение числа сбоев на объектах." },
+      { id: "ARC-008", title: "Система связи KLBR", category: "АВТОМАТИЗАЦИЯ И РОБОТОТЕХНИКА", minLevel: 1, desc: "Биорезонансная связь внутри кадрилей офицеров Блокварта.", significance: "Оперативность управления без проводных каналов." },
+      { id: "ARC-009", title: "Корабль «Penrose» и сменный экипаж", category: "КОСМИЧЕСКИЕ ИССЛЕДОВАНИЯ", minLevel: 1, desc: "Разведывательный корабль с экипажем из Гештальта-офицера и Реплики LSTR для поиска миров за пределами облака Оорта.", significance: "Расширение границ освоенного пространства." },
+      { id: "ARC-010", title: "Реакторный контур дальнего действия", category: "ИНЖЕНЕРИЯ", minLevel: 2, desc: "Автономный источник питания, рассчитанный на 3000 циклов при отсутствии внешнего обслуживания.", significance: "Ограничивает срок экспедиции, см. Фазу III." },
+      { id: "ARC-011", title: "Методика копирования нейронных паттернов", category: "АВТОМАТИЗАЦИЯ И РОБОТОТЕХНИКА", minLevel: 3, desc: "Перенос паттерна эталонного гражданина в матрицу Реплики с применением биорезонансных технологий.", significance: "Ограничена риском всплытия чужой памяти." },
+      { id: "ARC-012", title: "Эксперименты с биорезонансом S-23", category: "МЕДИЦИНСКИЕ ТЕХНОЛОГИИ", minLevel: 4, desc: "Исследования воздействия биорезонансной аномалии за Красными Вратами на нервную систему Гештальтов и Реплик.", significance: "Привели к потере контроля над частью объекта." }
+    ];
+
+    function renderAchievements() {
+      const grid = document.getElementById('achievements-grid');
+      if (!grid) return;
+      const q = (document.getElementById('archive-search').value || '').trim().toLowerCase();
+      const cat = document.getElementById('archive-category').value;
+      const list = achievementsData.filter(a => {
+        const hay = (a.id + ' ' + a.title + ' ' + a.desc).toLowerCase();
+        return (!q || hay.includes(q)) && (cat === 'ALL' || a.category === cat);
+      });
+      if (!list.length) {
+        grid.innerHTML = '<div class="locked-notice-box" style="grid-column: 1 / -1;">ПО ЗАПРОСУ ДОКУМЕНТОВ НЕ НАЙДЕНО</div>';
+        return;
+      }
+      grid.innerHTML = list.map(a => {
+        const ok = currentClearance >= a.minLevel;
+        return `
+          <div class="archive-card ${ok ? (a.minLevel >= 3 ? 'classified-card' : '') : 'locked-card'}">
+            <div>
+              <div class="card-top-meta"><span>${a.id}</span><span>${a.category}</span></div>
+              <div style="font-size: 14px; font-weight: bold; margin: 6px 0; color: ${ok ? 'var(--text-main)' : '#ff8080'};">${ok ? a.title : '[ДОКУМЕНТ СКРЫТ]'}</div>
+              <p style="font-size: 12px; color: var(--text-muted);">${ok ? a.desc : `DOCUMENT AVAILABLE — LEVEL ${a.minLevel} REQUIRED`}</p>
+            </div>
+            ${ok ? `<div class="card-significance"><strong>Значение:</strong> ${a.significance}</div>` : ''}
+          </div>`;
+      }).join('');
+    }
+
+    // ==========================================
+    // 11. DIRECTIVES
+    // ==========================================
+    const directivesData = [
+      { id: "DIR-001", title: "Свод гражданской ответственности (редакция 14-Б)", date: "84.01.10", minLevel: 0, stamp: "PUBLIC", badge: "ARCHIVE RECONSTRUCTION", badgeClass: "v-recon",
+        body: "<p>Каждый гражданин обязан соблюдать трудовую дисциплину, своевременно сообщать о нарушениях порядка и подчинять личные интересы интересам коллектива.</p><p>Уклонение от трудовой повинности и распространение запрещённых материалов влечёт перевоспитание на объектах Нации.</p>" },
+      { id: "DIR-002", title: "Регламент использования Реплик на производстве", date: "84.03.02", minLevel: 0, stamp: "PUBLIC", badge: "CANON", badgeClass: "v-canon",
+        body: "<p>Реплика является государственным оборудованием. Запрещается обращаться с ней как с гражданином, обсуждать с ней личные темы и допускать нарушение режима обслуживания.</p>" },
+      { id: "DIR-003", title: "Правила содержания и эксплуатации единиц типа LSTR", date: "84.04.18", minLevel: 1, stamp: "AUTHORIZED", badge: "CANON", badgeClass: "v-canon",
+        body: "<p>Офицерам-Гештальтам запрещено показывать единице LSTR фотографии, фильмы и книги, упоминать войну на Винете и вступать в неслужебную близость.</p><p>Нарушение влечёт досрочный отзыв экипажа с маршрута, если связь позволяет.</p>" },
+      { id: "DIR-004", title: "Порядок досмотра жилых блоков (Blockwart)", date: "84.07.19", minLevel: 1, stamp: "AUTHORIZED", badge: "CANON", badgeClass: "v-canon",
+        body: "<p>Домовым смотрителям предписано еженедельно проверять личные библиотеки, радиоприёмники и переписку жильцов. Неучтённые издания изымаются.</p>" },
+      { id: "DIR-005", title: "Техническое обслуживание реакторного контура Penrose", date: "84.05.22", minLevel: 2, stamp: "TECHNICAL", badge: "ARCHIVE RECONSTRUCTION", badgeClass: "v-recon",
+        body: "<p>Плановая проверка уплотнителей контура охлаждения каждые 500 циклов. После 3000-го цикла гарантия исправности не распространяется.</p>" },
+      { id: "DIR-006", title: "Протокол психологической коррекции Реплик", date: "84.08.05", minLevel: 3, stamp: "COMMAND / MED", badge: "CANON", badgeClass: "v-canon",
+        body: "<p>При признаках деградации персоны необходимо вызвать единицу KLBR для нейрокоррекции. Информирование самой единицы об диагнозе запрещено.</p>" },
+      { id: "DIR-007", title: "ДИРЕКТИВА ФАЗЫ III: PENROSE (после 3000 циклов)", date: "84.06.01", minLevel: 4, stamp: "EYES ONLY", badge: "INTERPRETATION", badgeClass: "v-interp",
+        body: "<p>При пересечении порога 3000 циклов экипаж обязан продолжать поиск вне зависимости от состояния связи и ресурса корабля. Возвращение не предусмотрено.</p><p>Потеря сигнала с борта трактуется как плановое завершение связного этапа; информацию о состоянии экипажа в публичные сводки не передавать.</p>" },
+      { id: "DIR-008", title: "Особое распоряжение по объекту S-23", date: "84.09.30", minLevel: 4, stamp: "EYES ONLY", badge: "UNKNOWN / REDACTED", badgeClass: "v-unknown",
+        body: "<p>Доступ персонала за Красные Врата прекращён. Состояние командующей единицы не разглашать. Объект перевести на режим закрытого циклического контроля.</p>" }
+    ];
+
+    function renderDirectives() {
+      const list = document.getElementById('directives-list');
+      if (!list) return;
+      list.innerHTML = directivesData.map((d, i) => {
+        const ok = currentClearance >= d.minLevel;
+        return `
+          <div class="directive-row ${ok ? '' : 'locked'}" onclick="openDirective(${i})">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted);">${d.id} // ДАТА: ${d.date}</div>
+              <div style="font-size: 14px; font-weight: bold; margin-top: 3px; color: ${ok ? 'var(--text-main)' : '#ff8080'};">${d.title}</div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="v-badge ${d.badgeClass}">${d.badge}</span>
+              <span class="stamp ${ok ? '' : 'amber'}">${ok ? d.stamp : `LOCKED // LEVEL ${d.minLevel} REQ`}</span>
+            </div>
+          </div>`;
+      }).join('');
+      const hint = document.getElementById('directives-clearance-hint');
+      if (hint) {
+        const open = directivesData.filter(d => currentClearance >= d.minLevel).length;
+        hint.textContent = `ДОСТУПНО: ${open} / ${directivesData.length}`;
+      }
+    }
+
+    function openDirective(idx) {
+      const d = directivesData[idx];
+      const ok = currentClearance >= d.minLevel;
+      const modalBox = document.getElementById('modal-content-box');
+      recordSessionAction(`${ok ? 'Открыта' : 'Попытка доступа (ОТКАЗ) к'} директива ${d.id}`);
+      if (!ok) {
+        modalBox.innerHTML = `
+          <div class="modal-header">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted);">РЕЕСТР ДИРЕКТИВ // ${d.id}</div>
+              <h3 style="font-size: 18px; color: var(--accent-red-bright); margin-top: 4px;">ДОСТУП ОГРАНИЧЕН: ${d.title}</h3>
+            </div>
+            <span class="stamp">ACCESS DENIED</span>
+          </div>
+          <div class="locked-notice-box"><strong>DOCUMENT AVAILABLE — LEVEL ${d.minLevel} REQUIRED</strong><br/><br/>Ваш текущий уровень допуска: ${currentClearance}.</div>
+          <div style="margin-top: 14px; text-align: right;"><button class="btn-terminal active" onclick="closeModal()">[ ВЕРНУТЬСЯ В РЕЕСТР ]</button></div>`;
+      } else {
+        modalBox.innerHTML = `
+          <div class="modal-header">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted);">РЕЕСТР ДИРЕКТИВ // ${d.id} // ДАТА: ${d.date}</div>
+              <h3 style="font-size: 18px; color: var(--text-main); margin-top: 4px;">${d.title}</h3>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="v-badge ${d.badgeClass}">${d.badge}</span>
+              <span class="stamp">${d.stamp}</span>
+            </div>
+          </div>
+          <div style="font-size: 13px; line-height: 1.6;">${d.body}</div>
+          <div style="margin-top: 16px; text-align: right;"><button class="btn-terminal active" onclick="closeModal()">[ ЗАКРЫТЬ ДОКУМЕНТ ]</button></div>`;
+      }
+      document.getElementById('doc-modal').classList.add('open');
+    }
+
+    // ==========================================
+    // 12. MODAL
+    // ==========================================
+    function closeModal() {
+      document.getElementById('doc-modal').classList.remove('open');
+    }
+
+    function closeModalOnBackdrop(e) {
+      if (e.target && e.target.id === 'doc-modal') closeModal();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // ==========================================
+    // 13. CLEARANCE LOGIC
+    // ==========================================
+    function totalDocsCount() {
+      return achievementsData.length + directivesData.length + rotfrontDocsData.length;
+    }
+
+    function availableDocsCount() {
+      const f = arr => arr.filter(x => currentClearance >= x.minLevel).length;
+      return f(achievementsData) + f(directivesData) + f(rotfrontDocsData);
+    }
+
+    function safeCall(fn) {
+      try { fn(); } catch (err) { console.error(err); }
+    }
+
+    function setClearance(level) {
+      currentClearance = level;
+      for (let i = 0; i <= 4; i++) {
+        const b = document.getElementById('btn-cl-' + i);
+        if (b) b.classList.toggle('active', i === level);
+      }
+      const meta = clearanceMeta[level];
+      const hdr = document.getElementById('header-clearance-text');
+      hdr.textContent = meta.name;
+      hdr.style.color = meta.color;
+      document.getElementById('clearance-desc-bar').innerHTML = meta.desc;
+      document.getElementById('global-doc-counter').textContent =
+        `ДОСТУПНО ДОКУМЕНТОВ: ${availableDocsCount()} / ${totalDocsCount()}`;
+      document.getElementById('replika-header-stamp').textContent = `CLEARANCE ${meta.short}`;
+
+      // Summary notice
+      const notice = document.getElementById('summary-clearance-notice');
+      if (level === 0) {
+        notice.innerHTML = '';
+      } else if (level < 4) {
+        notice.innerHTML = `<div class="persona-assessment-box" style="margin-top:0;"><strong style="color: var(--accent-amber);">[УРОВЕНЬ ${level}]</strong> Расширенный доступ активен. Часть записей по-прежнему скрыта от текущего уровня допуска.</div>`;
+      } else {
+        notice.innerHTML = `<div class="persona-assessment-box" style="margin-top:0;"><strong style="color: var(--accent-red-bright);">[EYES ONLY]</strong> Публичные сводки не совпадают с закрытыми архивами: показатели «НОРМА-А» и «104.8%» не подтверждаются телеметрией S-23.</div>`;
+      }
+
+      // AEON classified note
+      const aeonNote = document.getElementById('aeon-classified-note');
+      if (aeonNote) {
+        aeonNote.innerHTML = level >= 4
+          ? 'АРХИВНЫЙ ИНДЕКС: КОС-06/ЕВЗ <br/><span style="color:#ff8787;">[EYES ONLY] Биорезонанс не поддаётся полному контролю: аномалия за Красными Вратами S-23 вышла за рамки регламента.</span>'
+          : 'АРХИВНЫЙ ИНДЕКС: КОС-06/ЕВЗ';
+      }
+
+      // Penrose phase III
+      const ph3 = document.getElementById('phase-3-text');
+      if (ph3) {
+        ph3.innerHTML = level >= 3
+          ? 'Продолжение поиска при любом состоянии корабля и связи. Возвращение не предусмотрено. <span class="v-badge v-interp">INTERPRETATION</span>'
+          : 'Резервный этап продолжения поиска. (Для просмотра полной директивы Фазы III требуется Уровень допуска III–IV).';
+      }
+
+      safeCall(renderRotfront);
+      safeCall(renderReplikas);
+      safeCall(renderAchievements);
+      safeCall(renderDirectives);
+      if (document.getElementById('doc-modal').classList.contains('open') && activeReplikaId && document.querySelector('.dossier-tabs')) {
+        safeCall(renderReplikaModal);
+      }
+      recordSessionAction(`Установлен уровень допуска ${level}`);
+    }
+
+    // ==========================================
+    // 14. TERMINAL LOG
+    // ==========================================
+    const terminalLogs = [
+      { t: '', m: 'AEON MONITOR: сеанс инициализирован.' },
+      { t: '', m: 'Публичные блоки архива: целостность 99.8%.' },
+      { t: 'warn', m: 'Сектор ROTFRONT-C: частичное искажение записей.' },
+      { t: 'warn', m: 'Ретранслятор PENROSE-512: сигнал нестабилен.' },
+      { t: 'crit', m: 'S-23: биорезонансный фон превышает норму.' },
+      { t: '', m: 'Ожидание команд оператора...' }
+    ];
+    let logTimeouts = [];
+
+    function appendLog(m, cls) {
+      const box = document.getElementById('terminal-log-box');
+      if (!box) return;
+      const div = document.createElement('div');
+      div.className = 'log-entry ' + (cls || '');
+      const now = new Date();
+      const ts = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+      div.textContent = `[${ts}] ${m}`;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function replayTerminalLogs() {
+      const box = document.getElementById('terminal-log-box');
+      if (!box) return;
+      logTimeouts.forEach(t => clearTimeout(t));
+      logTimeouts = [];
+      box.innerHTML = '';
+      terminalLogs.forEach((l, i) => {
+        logTimeouts.push(setTimeout(() => appendLog(l.m, l.t), i * 250));
+      });
+      recordSessionAction('Обновлён поток телеметрии');
+    }
+
+    function triggerIntegrityScan() {
+      appendLog('Запуск проверки целостности архива...', '');
+      setTimeout(() => appendLog(`Проверено документов: ${totalDocsCount()}.`, ''), 400);
+      setTimeout(() => appendLog('Обнаружены расхождения между публичными и закрытыми сводками.', 'warn'), 900);
+      setTimeout(() => appendLog(currentClearance >= 4 ? 'Расхождения подтверждены: см. RTF-DOC-409.' : 'Подробности недоступны на текущем уровне допуска.', currentClearance >= 4 ? 'crit' : 'warn'), 1400);
+      recordSessionAction('Запущена проверка целостности архива');
+    }
+
+
+    // ==========================================
+    // ПЛАВНЫЕ ЭФФЕКТЫ: хуки поверх существующих функций
+    // ==========================================
+    function fxPulse(el) {
+      if (!el) return;
+      el.classList.remove('fx-flash');
+      void el.getBoundingClientRect();
+      el.classList.add('fx-flash');
+    }
+
+    (function () {
+      const wrap = (name, after) => {
+        const orig = window[name];
+        if (typeof orig !== 'function') return;
+        window[name] = function () {
+          const res = orig.apply(this, arguments);
+          try { after.apply(this, arguments); } catch (e) { console.error(e); }
+          return res;
+        };
+      };
+
+      wrap('inspectShipModule', function (index) {
+        document.querySelectorAll('.ship-module-hotspot').forEach((g, i) => g.classList.toggle('selected', i === index));
+        ['mod-title', 'mod-desc', 'mod-stamp'].forEach(id => fxPulse(document.getElementById(id)));
+      });
+
+      wrap('setPenroseStatus', function () {
+        ['penrose-header-stamp', 'svg-status-label', 'log-table-penrose'].forEach(id => fxPulse(document.getElementById(id)));
+      });
+
+      wrap('setClearance', function () {
+        fxPulse(document.getElementById('clearance-desc-bar'));
+        document.querySelectorAll('.doc-counter-badge').forEach(fxPulse);
+      });
+
+      wrap('toggleCRT', function () {
+        fxPulse(document.getElementById('btn-crt-toggle'));
+      });
+
+      wrap('recordSessionAction', function () {
+        fxPulse(document.getElementById('session-views-count'));
+      });
+    })();
+
+    // ==========================================
+    // 15. INIT
+    // ==========================================
+    function init() {
+      safeCall(() => setClearance(0));
+      safeCall(replayTerminalLogs);
+      safeCall(runBootSequence);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
