@@ -6,8 +6,8 @@
 | :---- | :---- |
 | **Автор** | `Русланов Мейримжан Русланулы`, группа `СИБ-32` |
 | **Дисциплина** | СРО 1 — публикация веб\-ресурса в облаке AWS и оценка киберрисков |
-| **Живая версия** | [https://main.ddhfhcprh90vq.amplifyapp.com/](https://www.google.com/search?q=https://main.ddhfhcprh90vq.amplifyapp.com/) |
-| **Мобильный терминал Penrose-512** | [https://main.ddhfhcprh90vq.amplifyapp.com/penrose\_512\_terminal.html](https://www.google.com/search?q=https://main.ddhfhcprh90vq.amplifyapp.com/penrose_512_terminal.html) |
+| **Живая версия** | [https://main.ddhfhcprh90vq.amplifyapp.com/](https://main.ddhfhcprh90vq.amplifyapp.com/) |
+| **Мобильный терминал Penrose-512** | [https://main.ddhfhcprh90vq.amplifyapp.com/penrose\_512\_terminal.html]([https://main.ddhfhcprh90vq.amplifyapp.com/penrose\_512\_terminal.html) |
 | **Репозиторий** | [https\://github.com/shiowhynasvaiblowa/Signalis-AEON-Network](https://github.com/shiowhynasvaiblowa/Signalis-AEON-Network) |
 | **Хостинг** | AWS Amplify Hosting (раздача через CloudFront, HTTPS) |
 | **Стек** | HTML5 · CSS3 · vanilla JavaScript · inline SVG |
